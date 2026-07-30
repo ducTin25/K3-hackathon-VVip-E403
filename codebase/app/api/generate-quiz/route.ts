@@ -7,7 +7,7 @@ export async function POST(request: Request) {
       scope?: QuizScope;
       questionCount?: number;
     };
-    if (!body.scope || !["lesson", "chapter", "knowledge_point"].includes(body.scope.type)) {
+    if (!body.scope || !["lesson", "chapter", "slide"].includes(body.scope.type)) {
       throw new Error("Phạm vi quiz không hợp lệ");
     }
     if (body.questionCount !== 5 && body.questionCount !== 10) {

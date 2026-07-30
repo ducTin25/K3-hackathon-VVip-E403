@@ -11,7 +11,8 @@ export type QuizQuestion = {
   explanation: string;
   sourceRef: {
     slideId: string;
-    displaySlideNumber: string;
+    displaySlideNumber: string | null;
+    pdfPage: number;
   };
   misconceptions: [string, string, string, string];
   confidence: "high" | "medium";
@@ -76,11 +77,12 @@ export async function generateQuiz(input: GenerateQuizRequest) {
 function buildQuizPrompt(slides: LessonSlide[], questionCount: number) {
   const sourceSlides = slides.map((slide) => ({
     slideId: slide.slideId,
+    pdfPage: slide.pdfPage,
     displaySlideNumber: slide.displaySlideNumber,
     title: slide.title,
-    sourceText: slide.sourceText,
-    keyPoints: slide.keyPoints,
-    learningObjectives: slide.learningObjectives,
+    sourceText: slide.rawText,
+    keyPoints: slide.aiAnalysis.keyPoints,
+    learningObjectives: slide.aiAnalysis.learningObjectives,
   }));
 
   return `Bạn là Assessment Generator cho hệ thống học tập VLearn.
@@ -196,7 +198,11 @@ function validateQuizResult(
       options,
       correctOption,
       explanation,
-      sourceRef: { slideId, displaySlideNumber: slide.displaySlideNumber },
+      sourceRef: {
+        slideId,
+        displaySlideNumber: slide.displaySlideNumber,
+        pdfPage: slide.pdfPage,
+      },
       misconceptions,
       confidence: item.confidence,
     } satisfies QuizQuestion;
