@@ -3,8 +3,7 @@ node_modules/
 *.env
 
 # Hackathon data pack must remain local
-/data/
-
+#/data
 # Local build and runtime artifacts
 **/.vinext/
 **/.wrangler/
