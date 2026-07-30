@@ -402,6 +402,8 @@ Chốt schema này trước khi TV2 và TV3 code song song.
 
 ### TV3 - AI/Backend và Grounding
 
+Thiết kế kỹ thuật chi tiết về kiến trúc AI, system prompt, guardrails, parser/OCR tiếng Việt, tool pipeline và phương án RAG: `docs/ke-hoach-thiet-ke-ai-quiz.md`.
+
 **Trách nhiệm chính**
 
 - Nhận source chunks theo contract và tạo quiz JSON.
