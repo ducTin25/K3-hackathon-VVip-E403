@@ -1,4 +1,46 @@
-# Mini Hackathon AI — Batch 03
+# Bài nộp Mini Hackathon AI — VLearn Knowledge Pulse
+
+## Nhóm
+
+> Cần điền đầy đủ trước CP4.
+
+| Mã học viên | Họ tên | Phụ trách chính |
+|---|---|---|
+| TODO | TODO | Evidence & impact |
+| TODO | TODO | AI prompt & evaluation |
+| TODO | TODO | Prototype & integration |
+| TODO | TODO | Spec & validation |
+| TODO | TODO | Demo & slide |
+
+## Lát cắt đang build
+
+Một học viên vừa học xong một phần slide cần kiểm tra mình hiểu sai khái niệm nào; AI tạo câu hỏi chẩn đoán có căn cứ từ slide và giải thích đáp án; học viên nhận được nội dung cần ôn lại cụ thể.
+
+## Cấu trúc bài nộp
+
+```text
+.
+├── README.md
+├── spec.md
+├── demo-slides.pdf          # bổ sung trước CP6
+├── demo-slides-outline.md   # dàn ý làm việc
+├── codebase/                # prototype và AI integration
+├── eval/                    # golden set, traces, kết quả các lượt chạy
+├── validation/              # feedback log từ user test
+└── reflection/              # mỗi thành viên một file
+```
+
+## Trạng thái
+
+- [x] CP2 — Flow chính bấm đi hết được.
+- [ ] CP3 — AI call thật + golden set ≥20 + kết quả lượt đầu.
+- [ ] CP4 — Spec gần cuối, evidence chuẩn A/B và quality bar được chốt.
+- [ ] CP5 — Validation ≥5 người, changelog và dry run.
+- [ ] CP6 — Demo 5 phút và slide 6 trang.
+
+---
+
+# Tài liệu gốc — Mini Hackathon AI · Batch 03
 
 **SPEC → Prototype → Demo.** Đây không phải cuộc thi code — đây là cuộc thi **tư duy sản phẩm AI**.
 

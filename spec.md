@@ -1,4 +1,4 @@
-w# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm VVip · Zone 
+# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm VVip · Zone [ĐIỀN ZONE]
 
 Hướng: [x] A - VLearn  [ ] B - Trợ lý Học viên  [ ] C - Làn mở  
 Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
@@ -252,3 +252,14 @@ Multi-prototype: `[TODO nếu thực hiện]`.
 | Sau khi review form | Đưa câu hỏi pain/hành vi lên trước câu hỏi “có muốn quiz” | Tránh câu hỏi dẫn dắt; đáp ứng chuẩn evidence |
 | Sau khi có prototype | Ghi rõ 4 câu đang hardcode, dashboard là mock và scope selector chưa có | Spec phải khớp artifact thật |
 | Sau khi có 24 phản hồi | Chốt mặc định 10 câu, trắc nghiệm, ưu tiên cả bài/chương và màn hình tổng hợp điểm yếu | Lựa chọn lần lượt đạt 41,7%, 58,3%, 62,5%/54,2% và 95,8% |
+
+## Phụ lục cập nhật CP3 — 2026-07-30
+
+- Prototype hiện đã có AI call thật: `POST /api/generate-quiz`.
+- DeepSeek `deepseek-v4-flash` sinh một câu hỏi chẩn đoán JSON có cấu trúc từ đúng đoạn slide được chọn; chấm trắc nghiệm vẫn là rule-based.
+- Khi nguồn thiếu hoặc mơ hồ, API trả `insufficient_source` và không phát hành câu hỏi.
+- Prompt v1: `eval/prompts/generate-quiz-v1.md`.
+- Golden set: 20 ca tại `eval/golden-set.csv`, gồm 15 ca từ chatlog/transcript và 5 ca mơ hồ, ngoài phạm vi hoặc adversarial.
+- Runner: `eval/run-deepseek-eval.mjs`; raw trace ghi vào `eval/traces/run-01/`.
+- Quality bar được giữ nguyên: đạt khi ≥80% case pass, 100% `source_ref` hợp lệ, không có câu sai kiến thức hoặc hai đáp án đúng.
+- Trạng thái lượt chạy 1: chưa chạy vì môi trường chưa có `DEEPSEEK_API_KEY`; không dùng dữ liệu giả thay kết quả AI.
