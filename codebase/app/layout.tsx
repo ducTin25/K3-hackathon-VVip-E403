@@ -9,7 +9,12 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   title: "VLearn Knowledge Pulse",
-  description: "Quiz thích ứng và bản đồ lỗ hổng kiến thức cho lớp học VLearn.",
+  description: "Tạo quiz có căn cứ từ slide và nhận gợi ý ôn tập cá nhân hóa bằng AI.",
+  openGraph: {
+    title: "VLearn Knowledge Pulse",
+    description: "Quiz từ slide, chấm điểm theo luật và nhận xét kiến thức bằng AI.",
+    images: ["/vlearn-quiz-og.png"],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
