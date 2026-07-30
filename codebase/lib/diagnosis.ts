@@ -25,6 +25,12 @@ export type LearningDiagnosis = {
     evidenceQuestionIds: string[];
     sourceSlideIds: string[];
   }>;
+  knowledgeGaps: Array<{
+    topic: string;
+    reason: string;
+    evidenceQuestionIds: string[];
+    sourceSlideIds: string[];
+  }>;
   recommendations: Array<{
     priority: number;
     knowledgePointId: string;
@@ -56,13 +62,15 @@ export function buildAttemptEvidence(attempt: SubmittedAttempt) {
     ) {
       throw new Error("Lựa chọn của học viên không hợp lệ");
     }
-    const isCorrect = selectedOption === question.correctOption;
+    const isSkipped = selectedOption === null;
+    const isCorrect = !isSkipped && selectedOption === question.correctOption;
     return {
       questionId: question.id,
       topic: question.topic,
       selectedOption,
       correctOption: question.correctOption,
       isCorrect,
+      isSkipped,
       selectedMisconception:
         selectedOption === null || isCorrect
           ? ""
@@ -72,6 +80,8 @@ export function buildAttemptEvidence(attempt: SubmittedAttempt) {
   });
   return {
     score: answers.filter((answer) => answer.isCorrect).length,
+    answeredQuestions: answers.filter((answer) => !answer.isSkipped).length,
+    skippedQuestions: answers.filter((answer) => answer.isSkipped).length,
     totalQuestions: answers.length,
     answers,
   };
@@ -92,6 +102,8 @@ export async function analyzeAttempt(attempt: SubmittedAttempt) {
     const diagnosis = validateDiagnosis(response.value, evidence, resources);
     return {
       score: evidence.score,
+      answeredQuestions: evidence.answeredQuestions,
+      skippedQuestions: evidence.skippedQuestions,
       totalQuestions: evidence.totalQuestions,
       diagnosis,
       fallback: false,
@@ -100,6 +112,8 @@ export async function analyzeAttempt(attempt: SubmittedAttempt) {
   } catch (error) {
     return {
       score: evidence.score,
+      answeredQuestions: evidence.answeredQuestions,
+      skippedQuestions: evidence.skippedQuestions,
       totalQuestions: evidence.totalQuestions,
       diagnosis: fallback,
       fallback: true,
@@ -120,11 +134,19 @@ function buildDiagnosisPrompt(
 NHIỆM VỤ
 Phân tích ATTEMPT_EVIDENCE và tạo kế hoạch ôn tập ngắn gọn bằng tiếng Việt.
 
+NGÔN NGỮ ĐẦU RA
+- Viết overallSummary, topic, misconception, reason, suggestedAction và limitations bằng tiếng Việt.
+- Chỉ giữ nguyên thuật ngữ chuyên ngành tiếng Anh phổ biến như AI Agent, LLM, ReAct, Thought, Action, Observation, Tool Calling, Function Calling, API hoặc system prompt.
+- Không viết nguyên câu tiếng Anh; mọi nhận xét và gợi ý hành động phải dễ hiểu với học viên Việt Nam.
+
 QUY TẮC
 - Không tính lại hoặc thay đổi score.
-- Chỉ dùng đúng/sai, misconception, topic, sourceSlideId và ALLOWED_REVIEW_RESOURCES.
+- Chỉ dùng đúng/sai/bỏ qua, misconception, topic, sourceSlideId và ALLOWED_REVIEW_RESOURCES.
 - Không suy luận về trí thông minh, thái độ hoặc năng lực tổng quát của học viên.
 - Mỗi weakness phải dẫn ít nhất một questionId thực sự sai.
+- Câu có isSkipped=true không phải câu sai và không được dùng để tạo weakness hoặc misconception.
+- Mỗi câu bỏ qua phải được phản ánh trong knowledgeGaps như một vùng kiến thức chưa đủ bằng chứng, cần ôn hoặc kiểm tra thêm.
+- Khi có câu bỏ qua, không khẳng định người học hiểu sai; hạ confidence về mức độ thành thạo vì chưa đủ bằng chứng.
 - Mỗi recommendation chỉ được dùng knowledgePointId và slideIds trong allowlist.
 - Một câu sai chỉ tạo tín hiệu confidence thấp; ưu tiên hiểu sai lặp lại.
 - Không khuyên học lại toàn bài nếu chỉ sai một điểm kiến thức.
@@ -138,6 +160,12 @@ JSON_OUTPUT
     "topic":"string",
     "misconception":"string",
     "severity":"high|medium|low",
+    "evidenceQuestionIds":["string"],
+    "sourceSlideIds":["string"]
+  }],
+  "knowledgeGaps": [{
+    "topic":"string",
+    "reason":"string",
     "evidenceQuestionIds":["string"],
     "sourceSlideIds":["string"]
   }],
@@ -163,7 +191,14 @@ function validateDiagnosis(
 ): LearningDiagnosis {
   if (!isRecord(value)) throw new Error("Diagnosis không phải object");
   const wrongIds = new Set(
-    evidence.answers.filter((answer) => !answer.isCorrect).map((answer) => answer.questionId),
+    evidence.answers
+      .filter((answer) => !answer.isCorrect && !answer.isSkipped)
+      .map((answer) => answer.questionId),
+  );
+  const skippedIds = new Set(
+    evidence.answers
+      .filter((answer) => answer.isSkipped)
+      .map((answer) => answer.questionId),
   );
   const correctIds = new Set(
     evidence.answers.filter((answer) => answer.isCorrect).map((answer) => answer.questionId),
@@ -197,12 +232,48 @@ function validateDiagnosis(
     }
     return {
       topic: requireText(item.topic, "topic"),
-      misconception: requireText(item.misconception, "misconception"),
+      misconception: requireVietnameseText(
+        item.misconception,
+        "misconception",
+      ),
       severity: item.severity as "high" | "medium" | "low",
       evidenceQuestionIds: ids,
       sourceSlideIds,
     };
   });
+  const knowledgeGaps = requireArray(value.knowledgeGaps, "knowledgeGaps").map(
+    (item) => {
+      if (!isRecord(item)) throw new Error("Knowledge gap không hợp lệ");
+      const ids = requireTextArray(
+        item.evidenceQuestionIds,
+        "evidenceQuestionIds",
+      );
+      if (ids.length === 0 || ids.some((id) => !skippedIds.has(id))) {
+        throw new Error("Knowledge gap không có bằng chứng câu bỏ qua");
+      }
+      const sourceSlideIds = requireTextArray(
+        item.sourceSlideIds,
+        "sourceSlideIds",
+      );
+      if (
+        sourceSlideIds.some(
+          (slideId) =>
+            !evidence.answers.some(
+              (answer) =>
+                answer.isSkipped && answer.sourceSlideId === slideId,
+            ),
+        )
+      ) {
+        throw new Error("Knowledge gap trích slide ngoài câu bỏ qua");
+      }
+      return {
+        topic: requireText(item.topic, "topic"),
+        reason: requireVietnameseText(item.reason, "reason"),
+        evidenceQuestionIds: ids,
+        sourceSlideIds,
+      };
+    },
+  );
   const recommendations = requireArray(value.recommendations, "recommendations").map(
     (item, index) => {
       if (!isRecord(item)) throw new Error("Recommendation không hợp lệ");
@@ -219,9 +290,12 @@ function validateDiagnosis(
             ? Number(item.priority)
             : index + 1,
         knowledgePointId,
-        reason: requireText(item.reason, "reason"),
+        reason: requireVietnameseText(item.reason, "reason"),
         slideIds,
-        suggestedAction: requireText(item.suggestedAction, "suggestedAction"),
+        suggestedAction: requireVietnameseText(
+          item.suggestedAction,
+          "suggestedAction",
+        ),
       };
     },
   );
@@ -230,12 +304,18 @@ function validateDiagnosis(
   }
 
   return {
-    overallSummary: requireText(value.overallSummary, "overallSummary"),
+    overallSummary: requireVietnameseText(
+      value.overallSummary,
+      "overallSummary",
+    ),
     strengths,
     weaknesses,
+    knowledgeGaps,
     recommendations: recommendations.sort((a, b) => a.priority - b.priority),
     confidence: value.confidence as "high" | "medium" | "low",
-    limitations: requireTextArray(value.limitations, "limitations"),
+    limitations: requireTextArray(value.limitations, "limitations").map(
+      (item) => requireVietnameseText(item, "limitations"),
+    ),
   };
 }
 
@@ -244,27 +324,38 @@ function buildFallbackDiagnosis(
   resources: ReturnType<typeof allowedReviewResources>,
 ): LearningDiagnosis {
   const correct = evidence.answers.filter((answer) => answer.isCorrect);
-  const wrong = evidence.answers.filter((answer) => !answer.isCorrect);
+  const wrong = evidence.answers.filter(
+    (answer) => !answer.isCorrect && !answer.isSkipped,
+  );
+  const skipped = evidence.answers.filter((answer) => answer.isSkipped);
   const correctTopics = [...new Set(correct.map((answer) => answer.topic))];
   const wrongTopics = [...new Set(wrong.map((answer) => answer.topic))];
   const recommendations = resources
     .filter((resource) =>
-      wrong.some((answer) => resource.slideIds.includes(answer.sourceSlideId)),
+      [...wrong, ...skipped].some((answer) =>
+        resource.slideIds.includes(answer.sourceSlideId),
+      ),
     )
     .slice(0, 3)
     .map((resource, index) => ({
       priority: index + 1,
       knowledgePointId: resource.knowledgePointId,
-      reason: `Có câu trả lời chưa đúng liên quan đến ${resource.title}.`,
+      reason: skipped.some((answer) =>
+        resource.slideIds.includes(answer.sourceSlideId),
+      )
+        ? `Bạn đã bỏ qua câu hỏi liên quan đến ${resource.title}; đây là vùng kiến thức cần kiểm tra thêm.`
+        : `Có câu trả lời chưa đúng liên quan đến ${resource.title}.`,
       slideIds: resource.slideIds,
       suggestedAction: `Xem lại ${resource.title} và thử làm lại câu liên quan.`,
     }));
 
   return {
     overallSummary:
-      wrong.length === 0
+      wrong.length === 0 && skipped.length === 0
         ? "Bạn đã trả lời đúng toàn bộ câu hỏi trong lượt kiểm tra này."
-        : `Bạn trả lời đúng ${evidence.score}/${evidence.totalQuestions} câu. Hãy tập trung vào ${wrongTopics.join(", ")}.`,
+        : evidence.answeredQuestions === 0
+          ? `Bạn đã bỏ qua toàn bộ ${evidence.skippedQuestions} câu. Hệ thống ghi nhận các nội dung này là hổng kiến thức cần kiểm tra thêm.`
+          : `Bạn trả lời đúng ${evidence.score}/${evidence.answeredQuestions} câu đã trả lời và bỏ qua ${evidence.skippedQuestions} câu.`,
     strengths: correctTopics.map((topic) => ({
       topic,
       evidenceQuestionIds: correct
@@ -283,6 +374,13 @@ function buildFallbackDiagnosis(
         sourceSlideIds: [...new Set(matching.map((answer) => answer.sourceSlideId))],
       };
     }),
+    knowledgeGaps: skipped.map((answer) => ({
+      topic: answer.topic,
+      reason:
+        "Bạn đã chọn bỏ qua; hệ thống chưa có đủ bằng chứng để xác nhận mức độ hiểu ở nội dung này.",
+      evidenceQuestionIds: [answer.questionId],
+      sourceSlideIds: [answer.sourceSlideId],
+    })),
     recommendations,
     confidence: wrong.length > 1 ? "medium" : "low",
     limitations: ["Đây là thống kê dự phòng bằng luật vì AI chưa thể phân tích lượt làm."],
@@ -301,6 +399,20 @@ function requireText(value: unknown, field: string) {
     throw new Error(`${field} phải là chuỗi không rỗng`);
   }
   return value.trim();
+}
+function requireVietnameseText(value: unknown, field: string) {
+  const text = requireText(value, field);
+  if (
+    !/[ăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]/i.test(
+      text,
+    ) &&
+    !/\b(là|và|của|để|khi|không|trong|theo|giúp|cần|nào|như|với|được)\b/i.test(
+      text,
+    )
+  ) {
+    throw new Error(`${field} phải được viết bằng tiếng Việt`);
+  }
+  return text;
 }
 function requireTextArray(value: unknown, field: string): string[] {
   if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {

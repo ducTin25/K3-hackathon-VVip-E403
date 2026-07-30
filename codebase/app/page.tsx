@@ -1,26 +1,54 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { SlideViewer } from "./components/slide-viewer";
 import type { LearningDiagnosis } from "../lib/diagnosis";
 import type { QuizScope } from "../lib/lesson";
 import type { QuizQuestion } from "../lib/quiz-generator";
 
 type Phase = "learn" | "generating" | "quiz" | "diagnosing" | "result";
 
-const chapters = [
-  { id: "DAY03-CH-01", title: "Nền tảng AI Agent", slides: "Trang 8–12" },
-  { id: "DAY03-CH-02", title: "ReAct và công cụ", slides: "Trang 23–38" },
-  { id: "DAY03-CH-03", title: "Quản lý ngữ cảnh", slides: "Trang 45" },
-];
+type CatalogSlide = {
+  slideId: string;
+  pdfPage: number;
+  displaySlideNumber: string | null;
+  chapterId: string;
+  title: string;
+  quizEligible: boolean;
+  reviewStatus: string;
+};
 
-const knowledgePoints = [
-  { id: "DAY03-KP-AGENT-VS-CHATBOT", title: "AI Agent và Chatbot", page: "8" },
-  { id: "DAY03-KP-AGENT-CYCLE", title: "Chu trình AI Agent", page: "12" },
-  { id: "DAY03-KP-REACT-LOOP", title: "Vòng lặp ReAct", page: "23" },
-  { id: "DAY03-KP-TOOL-CALLING", title: "Tool Calling", page: "31" },
-  { id: "DAY03-KP-FUNCTION-CALLING", title: "Function Calling", page: "38" },
-  { id: "DAY03-KP-CONTEXT-COMPRESS", title: "Nén context", page: "45" },
-];
+type LessonCatalog = {
+  lesson: {
+    lessonId: string;
+    lessonTitle: string;
+    totalSlides: number;
+  };
+  chapters: Array<{
+    chapterId: string;
+    order: number;
+    title: string;
+    description: string;
+  }>;
+  slides: CatalogSlide[];
+  pdfPath: string;
+};
+
+const defaultPdfPath =
+  "/slides/day03-tu-chatbot-den-agentic-agent-react-v7.pdf";
+
+function slidePageLabel(
+  displaySlideNumber: string | null,
+  pdfPage: number,
+) {
+  return displaySlideNumber
+    ? `Trang ${displaySlideNumber}`
+    : `Trang PDF ${pdfPage}`;
+}
+
+function slideHref(_pdfPath: string, pdfPage: number) {
+  return `/?pdfPage=${pdfPage}`;
+}
 
 function Logo() {
   return (
@@ -44,30 +72,98 @@ export default function Home() {
   const [score, setScore] = useState(0);
   const [usedFallback, setUsedFallback] = useState(false);
   const [error, setError] = useState("");
+  const [catalog, setCatalog] = useState<LessonCatalog | null>(null);
+  const [catalogError, setCatalogError] = useState("");
+  const [viewerPage, setViewerPage] = useState(1);
+
+  const quizSlides = useMemo(
+    () =>
+      catalog?.slides.filter(
+        (slide) => slide.quizEligible && slide.reviewStatus === "approved",
+      ) ?? [],
+    [catalog],
+  );
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/lesson")
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) {
+          throw new Error(payload.error ?? "Không thể tải dữ liệu bài học");
+        }
+        if (active) setCatalog(payload.catalog as LessonCatalog);
+      })
+      .catch((cause) => {
+        if (active) {
+          setCatalogError(
+            cause instanceof Error
+              ? cause.message
+              : "Không thể tải dữ liệu bài học",
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const requestedPage = Number(
+      new URLSearchParams(window.location.search).get("pdfPage"),
+    );
+    if (Number.isInteger(requestedPage) && requestedPage >= 1 && requestedPage <= 78) {
+      const timer = window.setTimeout(() => setViewerPage(requestedPage), 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, []);
 
   const scope = useMemo<QuizScope>(() => {
     if (scopeType === "chapter") {
       return { type: "chapter", lessonId: "DAY03", chapterId: scopeId };
     }
-    if (scopeType === "knowledge_point") {
-      return {
-        type: "knowledge_point",
-        lessonId: "DAY03",
-        knowledgePointId: scopeId,
-      };
+    if (scopeType === "slide") {
+      return { type: "slide", lessonId: "DAY03", slideId: scopeId };
     }
     return { type: "lesson", lessonId: "DAY03" };
   }, [scopeId, scopeType]);
 
   function changeScopeType(next: QuizScope["type"]) {
+    if (!catalog) return;
     setScopeType(next);
-    setScopeId(
-      next === "chapter"
-        ? chapters[0].id
-        : next === "knowledge_point"
-          ? knowledgePoints[0].id
-          : "DAY03",
+    if (next === "chapter") {
+      const chapter = catalog.chapters[0];
+      setScopeId(chapter?.chapterId ?? "DAY03");
+      const firstSlide = catalog.slides.find(
+        (slide) => slide.chapterId === chapter?.chapterId,
+      );
+      if (firstSlide) setViewerPage(firstSlide.pdfPage);
+    } else if (next === "slide") {
+      const firstSlide = quizSlides[0];
+      setScopeId(firstSlide?.slideId ?? "DAY03");
+      if (firstSlide) setViewerPage(firstSlide.pdfPage);
+    } else {
+      setScopeId("DAY03");
+      setViewerPage(1);
+    }
+  }
+
+  function changeScopeId(next: string) {
+    setScopeId(next);
+    const slide =
+      scopeType === "chapter"
+        ? catalog?.slides.find((item) => item.chapterId === next)
+        : catalog?.slides.find((item) => item.slideId === next);
+    if (slide) setViewerPage(slide.pdfPage);
+  }
+
+  function selectChapter(chapterId: string) {
+    setScopeType("chapter");
+    setScopeId(chapterId);
+    const firstSlide = catalog?.slides.find(
+      (slide) => slide.chapterId === chapterId,
     );
+    if (firstSlide) setViewerPage(firstSlide.pdfPage);
   }
 
   async function generateQuiz() {
@@ -105,6 +201,14 @@ export default function Home() {
     setAnswers((previous) =>
       previous.map((answer, index) => (index === current ? option : answer)),
     );
+  }
+
+  function skipAnswer() {
+    if (checked) return;
+    setAnswers((previous) =>
+      previous.map((answer, index) => (index === current ? null : answer)),
+    );
+    setChecked(true);
   }
 
   async function nextQuestion() {
@@ -165,9 +269,14 @@ export default function Home() {
           scopeType={scopeType}
           scopeId={scopeId}
           questionCount={questionCount}
-          error={error}
+          error={error || catalogError}
+          catalog={catalog}
+          quizSlides={quizSlides}
+          viewerPage={viewerPage}
+          onViewerPage={setViewerPage}
           onScopeType={changeScopeType}
-          onScopeId={setScopeId}
+          onScopeId={changeScopeId}
+          onChapter={selectChapter}
           onCount={setQuestionCount}
           onGenerate={generateQuiz}
         />
@@ -182,7 +291,9 @@ export default function Home() {
           total={questions.length}
           selected={answers[current]}
           checked={checked}
+          pdfPath={catalog?.pdfPath ?? defaultPdfPath}
           onSelect={selectAnswer}
+          onSkip={skipAnswer}
           onNext={nextQuestion}
           onExit={() => setPhase("learn")}
         />
@@ -195,6 +306,7 @@ export default function Home() {
           diagnosis={diagnosis}
           fallback={usedFallback}
           error={error}
+          pdfPath={catalog?.pdfPath ?? defaultPdfPath}
           onRetry={retryQuiz}
           onNew={() => setPhase("learn")}
         />
@@ -228,8 +340,13 @@ function LearnScreen({
   scopeId,
   questionCount,
   error,
+  catalog,
+  quizSlides,
+  viewerPage,
+  onViewerPage,
   onScopeType,
   onScopeId,
+  onChapter,
   onCount,
   onGenerate,
 }: {
@@ -237,46 +354,103 @@ function LearnScreen({
   scopeId: string;
   questionCount: 5 | 10;
   error: string;
+  catalog: LessonCatalog | null;
+  quizSlides: CatalogSlide[];
+  viewerPage: number;
+  onViewerPage: (page: number) => void;
   onScopeType: (value: QuizScope["type"]) => void;
   onScopeId: (value: string) => void;
+  onChapter: (chapterId: string) => void;
   onCount: (value: 5 | 10) => void;
   onGenerate: () => void;
 }) {
+  const pdfPath = catalog?.pdfPath ?? defaultPdfPath;
+  const currentSlide =
+    catalog?.slides.find((slide) => slide.pdfPage === viewerPage) ?? null;
+
   return (
     <div className="learn-layout">
       <aside className="course-sidebar">
-        <div className="side-title"><span>▤</span><div><b>Học liệu môn học</b><small>Slide đã được đối chiếu</small></div></div>
-        <div className="day muted">▷ <b>Day 1</b><small>Đã học</small></div>
-        <div className="day muted">▷ <b>Day 2</b><small>Đã học</small></div>
-        <div className="day open">▼ <b>Day 3</b><small>Đang học</small>
-          <div className="file active"><span>▧</span><div><b>Từ Chatbot đến Agentic Agent</b><small>50 trang · Approved</small></div></div>
+        <div className="side-title">
+          <span>▤</span>
+          <div><b>Học liệu môn học</b><small>Slide đã được đối chiếu</small></div>
         </div>
-        <div className="day">▷ <b>Day 4</b><small>Chưa học</small></div>
+        <div className="lesson-summary">
+          <b>{catalog?.lesson.lessonTitle ?? "Từ Chatbot Đến Agentic Agent"}</b>
+          <small>{catalog?.lesson.totalSlides ?? 78} trang PDF · Approved</small>
+        </div>
+        <div className="chapter-list" aria-label="Danh sách chương">
+          {catalog?.chapters.map((chapter) => {
+            const firstSlide = catalog.slides.find(
+              (slide) => slide.chapterId === chapter.chapterId,
+            );
+            return (
+              <button
+                type="button"
+                className={
+                  scopeType === "chapter" && scopeId === chapter.chapterId
+                    ? "chapter-item active"
+                    : "chapter-item"
+                }
+                key={chapter.chapterId}
+                onClick={() => onChapter(chapter.chapterId)}
+              >
+                <span>{String(chapter.order).padStart(2, "0")}</span>
+                <div>
+                  <b>{chapter.title}</b>
+                  <small>
+                    {firstSlide
+                      ? slidePageLabel(firstSlide.displaySlideNumber, firstSlide.pdfPage)
+                      : "Chưa có slide"}
+                  </small>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </aside>
 
       <section className="reader">
         <div className="reader-toolbar">
-          <button className="active">⌖ Đọc</button><button>✎ Bút</button><button>⌁ Highlight</button>
-          <span>Trang 23 · ReAct Loop</span><b>100%</b>
+          <span className="reader-mode">▤ Xem slide</span>
+          <div className="slide-navigation" aria-label="Điều hướng slide">
+            <button
+              type="button"
+              disabled={viewerPage <= 1}
+              onClick={() => onViewerPage(viewerPage - 1)}
+              aria-label="Slide trước"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              disabled={viewerPage >= (catalog?.lesson.totalSlides ?? 78)}
+              onClick={() => onViewerPage(viewerPage + 1)}
+              aria-label="Slide tiếp theo"
+            >
+              →
+            </button>
+          </div>
+          <span>
+            {currentSlide
+              ? `${slidePageLabel(currentSlide.displaySlideNumber, currentSlide.pdfPage)} · ${currentSlide.title}`
+              : `Trang PDF ${viewerPage}`}
+          </span>
+          <a href={slideHref(pdfPath, viewerPage)} target="_blank" rel="noreferrer">
+            Mở slide ở tab mới ↗
+          </a>
         </div>
         <div className="slide-stage">
-          <article className="slide">
-            <div className="slide-brand"><Logo /><span>23</span></div>
-            <div className="red-rule" />
-            <p className="eyebrow">CORE CONCEPT</p>
-            <h1>ReAct Loop</h1>
-            <p className="subtitle">Thought → Action → Observation</p>
-            <div className="loop">
-              {["User Input", "Thought", "Action", "Observation"].map((label, index) => (
-                <div className={`loop-node n${index}`} key={label}>
-                  <b>{label}</b>
-                  <small>{["Mục tiêu", "Phân tích", "Gọi công cụ", "Nhận kết quả"][index]}</small>
-                </div>
-              ))}
-            </div>
-            <div className="slide-insight"><b>Vì sao ReAct mạnh?</b><p>Agent quan sát kết quả thật sau mỗi hành động rồi mới quyết định bước tiếp theo.</p></div>
-          </article>
-          <p className="approved-note">✓ Nguồn đã được người phụ trách đối chiếu và phê duyệt</p>
+          <SlideViewer
+            pdfPath={pdfPath}
+            pageNumber={viewerPage}
+            label={
+              currentSlide
+                ? `${slidePageLabel(currentSlide.displaySlideNumber, currentSlide.pdfPage)}: ${currentSlide.title}`
+                : `Trang PDF ${viewerPage}`
+            }
+          />
+          <p className="approved-note">✓ Nguồn gồm 78 trang đã được đối chiếu và phê duyệt</p>
         </div>
       </section>
 
@@ -287,16 +461,22 @@ function LearnScreen({
         <div className="segmented">
           <button className={scopeType === "lesson" ? "active" : ""} onClick={() => onScopeType("lesson")}>Cả bài</button>
           <button className={scopeType === "chapter" ? "active" : ""} onClick={() => onScopeType("chapter")}>Chương</button>
-          <button className={scopeType === "knowledge_point" ? "active" : ""} onClick={() => onScopeType("knowledge_point")}>Điểm kiến thức</button>
+          <button className={scopeType === "slide" ? "active" : ""} onClick={() => onScopeType("slide")}>Slide kiến thức</button>
         </div>
         {scopeType === "chapter" && (
           <select value={scopeId} onChange={(event) => onScopeId(event.target.value)}>
-            {chapters.map((chapter) => <option value={chapter.id} key={chapter.id}>{chapter.title} · {chapter.slides}</option>)}
+            {catalog?.chapters.map((chapter) => (
+              <option value={chapter.chapterId} key={chapter.chapterId}>{chapter.title}</option>
+            ))}
           </select>
         )}
-        {scopeType === "knowledge_point" && (
+        {scopeType === "slide" && (
           <select value={scopeId} onChange={(event) => onScopeId(event.target.value)}>
-            {knowledgePoints.map((point) => <option value={point.id} key={point.id}>{point.title} · Trang {point.page}</option>)}
+            {quizSlides.map((slide) => (
+              <option value={slide.slideId} key={slide.slideId}>
+                {slide.title} · {slidePageLabel(slide.displaySlideNumber, slide.pdfPage)}
+              </option>
+            ))}
           </select>
         )}
         <label>Số câu hỏi</label>
@@ -308,9 +488,9 @@ function LearnScreen({
           ))}
         </div>
         <div className="source-summary">
-          <span>▤</span><div><b>Nguồn cố định đã duyệt</b><small>6 slide · 8 điểm kiến thức · Không dùng Internet</small></div>
+          <span>▤</span><div><b>Nguồn cố định đã duyệt</b><small>{quizSlides.length || 49} slide tạo quiz · Không dùng Internet</small></div>
         </div>
-        <button className="primary wide" onClick={onGenerate}>Tạo quiz bằng AI <span>→</span></button>
+        <button className="primary wide" disabled={!catalog} onClick={onGenerate}>Tạo quiz bằng AI <span>→</span></button>
         <p className="fine-print">Điểm do hệ thống tính. AI chỉ tạo câu hỏi và phân tích phần cần ôn.</p>
       </aside>
     </div>
@@ -337,7 +517,9 @@ function QuizScreen({
   total,
   selected,
   checked,
+  pdfPath,
   onSelect,
+  onSkip,
   onNext,
   onExit,
 }: {
@@ -346,7 +528,9 @@ function QuizScreen({
   total: number;
   selected: number | null;
   checked: boolean;
+  pdfPath: string;
   onSelect: (option: number) => void;
+  onSkip: () => void;
   onNext: () => void;
   onExit: () => void;
 }) {
@@ -359,7 +543,18 @@ function QuizScreen({
       <div className="progress-row"><div><i style={{ width: `${((index + (checked ? 1 : 0)) / total) * 100}%` }} /></div><b>{index + 1}/{total}</b></div>
       <div className="question-grid">
         <article className="question-card">
-          <div className="tags"><span>{question.topic}</span><span>{question.level === "apply" ? "Áp dụng" : "Hiểu"}</span><span>▤ Trang {question.sourceRef.displaySlideNumber}</span></div>
+          <div className="tags">
+            <span>{question.topic}</span>
+            <span>{question.level === "apply" ? "Áp dụng" : "Hiểu"}</span>
+            <a
+              href={slideHref(pdfPath, question.sourceRef.pdfPage)}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Mở ${slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} trong tab mới`}
+            >
+              ▤ {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
+            </a>
+          </div>
           <h2>{question.question}</h2>
           <div className="options">
             {question.options.map((option, optionIndex) => {
@@ -378,24 +573,51 @@ function QuizScreen({
             })}
           </div>
           {checked && (
-            <div className={`feedback ${selected === question.correctOption ? "good" : "bad"}`}>
-              <b>{selected === question.correctOption ? "✓ Chính xác" : "! Chưa chính xác"}</b>
+            <div className={`feedback ${selected === null ? "skipped" : selected === question.correctOption ? "good" : "bad"}`}>
+              <b>
+                {selected === null
+                  ? "○ Đã bỏ qua · Ghi nhận hổng kiến thức"
+                  : selected === question.correctOption
+                    ? "✓ Chính xác"
+                    : "! Chưa chính xác"}
+              </b>
               <p>{question.explanation}</p>
-              <span>Đối chiếu Trang {question.sourceRef.displaySlideNumber}</span>
+              <a
+                href={slideHref(pdfPath, question.sourceRef.pdfPage)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Đối chiếu {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
+              </a>
             </div>
           )}
           <footer>
-            <span>{checked ? "Giải thích được tạo từ slide nguồn" : "Chọn một đáp án để tiếp tục"}</span>
-            <button className="primary" disabled={selected === null} onClick={onNext}>
-              {!checked ? "Kiểm tra đáp án" : index === total - 1 ? "Xem kết quả" : "Câu tiếp theo"} →
-            </button>
+            <span>{checked ? "Giải thích được tạo từ slide nguồn" : "Chọn đáp án hoặc bỏ qua nếu chưa biết"}</span>
+            <div className="question-actions">
+              {!checked && (
+                <button className="skip-button" onClick={onSkip}>
+                  Bỏ qua · Chưa biết
+                </button>
+              )}
+              <button className="primary" disabled={!checked && selected === null} onClick={onNext}>
+                {!checked ? "Kiểm tra đáp án" : index === total - 1 ? "Xem kết quả" : "Câu tiếp theo"} →
+              </button>
+            </div>
           </footer>
         </article>
         <aside className="source-card">
-          <p className="eyebrow">TRÍCH TỪ TRANG {question.sourceRef.displaySlideNumber}</p>
+          <p className="eyebrow">TRÍCH TỪ {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)}</p>
           <h3>{question.topic}</h3>
           <div className="source-visual"><i /><i /><i /><i /></div>
-          <p>Câu hỏi có mã nguồn <b>{question.sourceRef.slideId}</b>. Bạn có thể quay lại slide để tự kiểm chứng.</p>
+          <p>Câu hỏi có mã nguồn <b>{question.sourceRef.slideId}</b>.</p>
+          <a
+            className="source-link"
+            href={slideHref(pdfPath, question.sourceRef.pdfPage)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Mở slide nguồn ↗
+          </a>
           <span className={`confidence ${question.confidence}`}>Độ tin cậy: {question.confidence === "high" ? "cao" : "trung bình"}</span>
         </aside>
       </div>
@@ -410,6 +632,7 @@ function ResultScreen({
   diagnosis,
   fallback,
   error,
+  pdfPath,
   onRetry,
   onNew,
 }: {
@@ -419,17 +642,21 @@ function ResultScreen({
   diagnosis: LearningDiagnosis;
   fallback: boolean;
   error: string;
+  pdfPath: string;
   onRetry: () => void;
   onNew: () => void;
 }) {
-  const percent = Math.round((score / questions.length) * 100);
+  const skippedCount = answers.filter((answer) => answer === null).length;
+  const answeredCount = questions.length - skippedCount;
+  const percent =
+    answeredCount > 0 ? Math.round((score / answeredCount) * 100) : 0;
   return (
     <section className="result-page">
       <div className="result-hero">
         <div><p className="eyebrow">KẾT QUẢ KIỂM TRA · DAY 3</p><h1>Bạn đã hoàn thành!</h1><p>{diagnosis.overallSummary}</p>
           <div className="actions"><button className="primary" onClick={onNew}>Ôn phần còn yếu →</button><button className="secondary" onClick={onRetry}>Làm lại quiz</button></div>
         </div>
-        <div className="score-ring" style={{ "--score": `${percent * 3.6}deg` } as React.CSSProperties}><div><strong>{score}/{questions.length}</strong><span>câu đúng</span></div></div>
+        <div className="score-ring" style={{ "--score": `${percent * 3.6}deg` } as React.CSSProperties}><div><strong>{score}/{answeredCount}</strong><span>câu đã trả lời đúng</span>{skippedCount > 0 && <small>{skippedCount} câu bỏ qua</small>}</div></div>
       </div>
       {(fallback || error) && <div className="fallback-note">ℹ Đang hiển thị phân tích dự phòng bằng luật. Điểm số và đáp án vẫn chính xác.</div>}
       <div className="diagnosis-card">
@@ -437,18 +664,33 @@ function ResultScreen({
         <div className="diagnosis-columns">
           <div className="strength-box"><b>✓ Bạn đã làm tốt</b>{diagnosis.strengths.length ? diagnosis.strengths.map((item) => <p key={item.topic}>{item.topic} <small>· {item.evidenceQuestionIds.join(", ")}</small></p>) : <p>Chưa đủ câu đúng để xác định điểm mạnh.</p>}</div>
           <div className="weakness-box"><b>! Nên tập trung tiếp theo</b>{diagnosis.weaknesses.length ? diagnosis.weaknesses.map((item) => <p key={`${item.topic}-${item.misconception}`}>{item.topic}: {item.misconception}</p>) : <p>Không phát hiện điểm yếu trong lượt làm này.</p>}</div>
+          <div className="gap-box"><b>○ Hổng kiến thức cần kiểm tra</b>{diagnosis.knowledgeGaps.length ? diagnosis.knowledgeGaps.map((item) => <p key={`${item.topic}-${item.evidenceQuestionIds.join("-")}`}>{item.topic}: {item.reason}</p>) : <p>Không có câu nào bị bỏ qua.</p>}</div>
         </div>
       </div>
       <div className="result-grid">
         <section className="answer-summary">
-          <div className="section-title"><div><span>▤</span><div><h2>Tổng hợp câu trả lời</h2><p>Xem kết quả và nguồn của từng câu.</p></div></div><b>{score}/{questions.length} câu đúng</b></div>
+          <div className="section-title"><div><span>▤</span><div><h2>Tổng hợp câu trả lời</h2><p>Xem kết quả và nguồn của từng câu.</p></div></div><b>{score}/{answeredCount} đúng · {skippedCount} bỏ qua</b></div>
           {questions.map((question, index) => {
             const correct = answers[index] === question.correctOption;
+            const skipped = answers[index] === null;
             return (
-              <div className={`answer-row ${correct ? "pass" : "fail"}`} key={question.id}>
-                <span>{correct ? "✓" : "!"}</span>
-                <div><small>Câu {index + 1} · {question.topic} · Trang {question.sourceRef.displaySlideNumber}</small><b>{question.question}</b><p>{correct ? "Bạn trả lời đúng." : `Bạn chọn: ${answers[index] === null ? "Bỏ qua" : question.options[answers[index]!]}. Đáp án đúng: ${question.options[question.correctOption]}`}</p></div>
-                <em>{correct ? "Đúng" : "Cần ôn"}</em>
+              <div className={`answer-row ${skipped ? "skipped" : correct ? "pass" : "fail"}`} key={question.id}>
+                <span>{skipped ? "○" : correct ? "✓" : "!"}</span>
+                <div>
+                  <small>Câu {index + 1} · {question.topic}</small>
+                  <a
+                    className="answer-source-link"
+                    href={slideHref(pdfPath, question.sourceRef.pdfPage)}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Mở ${slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} cho câu ${index + 1} trong tab mới`}
+                  >
+                    ▤ {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
+                  </a>
+                  <b>{question.question}</b>
+                  <p>{skipped ? "Bạn đã bỏ qua câu này. Hệ thống ghi nhận đây là hổng kiến thức cần kiểm tra thêm." : correct ? "Bạn trả lời đúng." : `Bạn chọn: ${question.options[answers[index]!]}. Đáp án đúng: ${question.options[question.correctOption]}`}</p>
+                </div>
+                <em>{skipped ? "Hổng kiến thức" : correct ? "Đúng" : "Cần ôn"}</em>
               </div>
             );
           })}
@@ -456,9 +698,38 @@ function ResultScreen({
         <aside className="recommend-card">
           <p className="eyebrow">GỢI Ý ÔN TẬP TIẾP THEO</p>
           <h2>Kế hoạch ngắn cho bạn</h2>
-          {diagnosis.recommendations.length ? diagnosis.recommendations.map((item) => (
-            <div className="recommendation" key={item.knowledgePointId}><span>{item.priority}</span><div><b>{item.suggestedAction}</b><p>{item.reason}</p><small>Trang {item.slideIds.map((id) => id.split("S")[1]).join(", ")}</small></div></div>
-          )) : <p>Bạn chưa cần ôn lại phần nào trong phạm vi này. Hãy thử bộ 10 câu để kiểm tra sâu hơn.</p>}
+          {diagnosis.recommendations.length ? diagnosis.recommendations.map((item) => {
+            const sourceQuestions = questions.filter((question) =>
+              item.slideIds.includes(question.sourceRef.slideId),
+            ).filter(
+              (question, index, matches) =>
+                matches.findIndex(
+                  (candidate) =>
+                    candidate.sourceRef.slideId === question.sourceRef.slideId,
+                ) === index,
+            );
+            return (
+              <div className="recommendation" key={item.knowledgePointId}>
+                <span>{item.priority}</span>
+                <div>
+                  <b>{item.suggestedAction}</b>
+                  <p>{item.reason}</p>
+                  <div className="recommendation-links">
+                    {sourceQuestions.map((question) => (
+                      <a
+                        key={question.sourceRef.slideId}
+                        href={slideHref(pdfPath, question.sourceRef.pdfPage)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          }) : <p>Bạn chưa cần ôn lại phần nào trong phạm vi này. Hãy thử bộ 10 câu để kiểm tra sâu hơn.</p>}
           {diagnosis.limitations.map((item) => <small className="limitation" key={item}>• {item}</small>)}
           <button className="primary wide" onClick={onNew}>Mở lại bài học →</button>
         </aside>
@@ -473,9 +744,17 @@ function buildClientFallback(
   score: number,
 ): LearningDiagnosis {
   const correct = questions.filter((question, index) => answers[index] === question.correctOption);
-  const wrong = questions.filter((question, index) => answers[index] !== question.correctOption);
+  const wrong = questions.filter(
+    (question, index) =>
+      answers[index] !== null && answers[index] !== question.correctOption,
+  );
+  const skipped = questions.filter((_, index) => answers[index] === null);
+  const answeredCount = questions.length - skipped.length;
   return {
-    overallSummary: `Bạn trả lời đúng ${score}/${questions.length} câu. Kết quả được tổng hợp bằng luật vì AI phân tích tạm thời chưa sẵn sàng.`,
+    overallSummary:
+      answeredCount === 0
+        ? `Bạn đã bỏ qua toàn bộ ${skipped.length} câu. Các nội dung này được ghi nhận là hổng kiến thức cần kiểm tra thêm.`
+        : `Bạn trả lời đúng ${score}/${answeredCount} câu đã trả lời và bỏ qua ${skipped.length} câu. Kết quả được tổng hợp bằng luật vì AI phân tích tạm thời chưa sẵn sàng.`,
     strengths: correct.map((question) => ({ topic: question.topic, evidenceQuestionIds: [question.id] })),
     weaknesses: wrong.map((question) => ({
       topic: question.topic,
@@ -484,12 +763,21 @@ function buildClientFallback(
       evidenceQuestionIds: [question.id],
       sourceSlideIds: [question.sourceRef.slideId],
     })),
-    recommendations: wrong.slice(0, 3).map((question, index) => ({
+    knowledgeGaps: skipped.map((question) => ({
+      topic: question.topic,
+      reason:
+        "Bạn đã bỏ qua câu hỏi này; hệ thống chưa đủ bằng chứng để xác nhận mức độ hiểu.",
+      evidenceQuestionIds: [question.id],
+      sourceSlideIds: [question.sourceRef.slideId],
+    })),
+    recommendations: [...wrong, ...skipped].slice(0, 3).map((question, index) => ({
       priority: index + 1,
       knowledgePointId: question.topic,
-      reason: `Bạn chưa trả lời đúng câu ${question.id}.`,
+      reason: skipped.includes(question)
+        ? `Bạn đã bỏ qua câu ${question.id}; hãy xem lại nội dung nguồn rồi tự kiểm tra lại.`
+        : `Bạn chưa trả lời đúng câu ${question.id}.`,
       slideIds: [question.sourceRef.slideId],
-      suggestedAction: `Xem lại Trang ${question.sourceRef.displaySlideNumber}`,
+      suggestedAction: `Xem lại ${slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)}`,
     })),
     confidence: "low",
     limitations: ["Phân tích dự phòng không suy luận sâu về misconception."],
