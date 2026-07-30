@@ -75,3 +75,51 @@ test("packages the approved Day 03 PDF as a public asset", async () => {
   assert.ok(pdf.isFile());
   assert.ok(pdf.size > 1_000_000);
 });
+
+test("classifies skipped answers as knowledge gaps, not wrong answers", async () => {
+  const worker = await loadWorker();
+  const baseQuestion = {
+    topic: "ReAct",
+    level: "understand",
+    question: "ReAct gồm những bước nào?",
+    options: ["Thought, Action, Observation", "Input, Output", "Plan, End", "Search"],
+    correctOption: 0,
+    explanation: "ReAct lặp qua Thought, Action và Observation.",
+    sourceRef: {
+      slideId: "DAY03-S031",
+      displaySlideNumber: "29",
+      pdfPage: 31,
+    },
+    misconceptions: ["", "Nhầm với I/O", "Thiếu observation", "Chỉ có search"],
+    confidence: "high",
+  };
+  const response = await worker.fetch(
+    new Request("http://localhost/api/diagnosis", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        scope: { type: "lesson", lessonId: "DAY03" },
+        questions: [
+          { ...baseQuestion, id: "q-skip" },
+          { ...baseQuestion, id: "q-wrong", question: "Observation dùng để làm gì?" },
+        ],
+        selectedOptions: [null, 1],
+      }),
+    }),
+    env(),
+    context(),
+  );
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.score, 0);
+  assert.equal(payload.answeredQuestions, 1);
+  assert.equal(payload.skippedQuestions, 1);
+  assert.equal(payload.diagnosis.knowledgeGaps.length, 1);
+  assert.deepEqual(payload.diagnosis.knowledgeGaps[0].evidenceQuestionIds, [
+    "q-skip",
+  ]);
+  assert.equal(payload.diagnosis.weaknesses.length, 1);
+  assert.deepEqual(payload.diagnosis.weaknesses[0].evidenceQuestionIds, [
+    "q-wrong",
+  ]);
+});

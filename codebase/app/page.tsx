@@ -203,6 +203,14 @@ export default function Home() {
     );
   }
 
+  function skipAnswer() {
+    if (checked) return;
+    setAnswers((previous) =>
+      previous.map((answer, index) => (index === current ? null : answer)),
+    );
+    setChecked(true);
+  }
+
   async function nextQuestion() {
     if (!checked) {
       setChecked(true);
@@ -285,6 +293,7 @@ export default function Home() {
           checked={checked}
           pdfPath={catalog?.pdfPath ?? defaultPdfPath}
           onSelect={selectAnswer}
+          onSkip={skipAnswer}
           onNext={nextQuestion}
           onExit={() => setPhase("learn")}
         />
@@ -510,6 +519,7 @@ function QuizScreen({
   checked,
   pdfPath,
   onSelect,
+  onSkip,
   onNext,
   onExit,
 }: {
@@ -520,6 +530,7 @@ function QuizScreen({
   checked: boolean;
   pdfPath: string;
   onSelect: (option: number) => void;
+  onSkip: () => void;
   onNext: () => void;
   onExit: () => void;
 }) {
@@ -562,8 +573,14 @@ function QuizScreen({
             })}
           </div>
           {checked && (
-            <div className={`feedback ${selected === question.correctOption ? "good" : "bad"}`}>
-              <b>{selected === question.correctOption ? "✓ Chính xác" : "! Chưa chính xác"}</b>
+            <div className={`feedback ${selected === null ? "skipped" : selected === question.correctOption ? "good" : "bad"}`}>
+              <b>
+                {selected === null
+                  ? "○ Đã bỏ qua · Ghi nhận hổng kiến thức"
+                  : selected === question.correctOption
+                    ? "✓ Chính xác"
+                    : "! Chưa chính xác"}
+              </b>
               <p>{question.explanation}</p>
               <a
                 href={slideHref(pdfPath, question.sourceRef.pdfPage)}
@@ -575,10 +592,17 @@ function QuizScreen({
             </div>
           )}
           <footer>
-            <span>{checked ? "Giải thích được tạo từ slide nguồn" : "Chọn một đáp án để tiếp tục"}</span>
-            <button className="primary" disabled={selected === null} onClick={onNext}>
-              {!checked ? "Kiểm tra đáp án" : index === total - 1 ? "Xem kết quả" : "Câu tiếp theo"} →
-            </button>
+            <span>{checked ? "Giải thích được tạo từ slide nguồn" : "Chọn đáp án hoặc bỏ qua nếu chưa biết"}</span>
+            <div className="question-actions">
+              {!checked && (
+                <button className="skip-button" onClick={onSkip}>
+                  Bỏ qua · Chưa biết
+                </button>
+              )}
+              <button className="primary" disabled={!checked && selected === null} onClick={onNext}>
+                {!checked ? "Kiểm tra đáp án" : index === total - 1 ? "Xem kết quả" : "Câu tiếp theo"} →
+              </button>
+            </div>
           </footer>
         </article>
         <aside className="source-card">
@@ -622,14 +646,17 @@ function ResultScreen({
   onRetry: () => void;
   onNew: () => void;
 }) {
-  const percent = Math.round((score / questions.length) * 100);
+  const skippedCount = answers.filter((answer) => answer === null).length;
+  const answeredCount = questions.length - skippedCount;
+  const percent =
+    answeredCount > 0 ? Math.round((score / answeredCount) * 100) : 0;
   return (
     <section className="result-page">
       <div className="result-hero">
         <div><p className="eyebrow">KẾT QUẢ KIỂM TRA · DAY 3</p><h1>Bạn đã hoàn thành!</h1><p>{diagnosis.overallSummary}</p>
           <div className="actions"><button className="primary" onClick={onNew}>Ôn phần còn yếu →</button><button className="secondary" onClick={onRetry}>Làm lại quiz</button></div>
         </div>
-        <div className="score-ring" style={{ "--score": `${percent * 3.6}deg` } as React.CSSProperties}><div><strong>{score}/{questions.length}</strong><span>câu đúng</span></div></div>
+        <div className="score-ring" style={{ "--score": `${percent * 3.6}deg` } as React.CSSProperties}><div><strong>{score}/{answeredCount}</strong><span>câu đã trả lời đúng</span>{skippedCount > 0 && <small>{skippedCount} câu bỏ qua</small>}</div></div>
       </div>
       {(fallback || error) && <div className="fallback-note">ℹ Đang hiển thị phân tích dự phòng bằng luật. Điểm số và đáp án vẫn chính xác.</div>}
       <div className="diagnosis-card">
@@ -637,16 +664,18 @@ function ResultScreen({
         <div className="diagnosis-columns">
           <div className="strength-box"><b>✓ Bạn đã làm tốt</b>{diagnosis.strengths.length ? diagnosis.strengths.map((item) => <p key={item.topic}>{item.topic} <small>· {item.evidenceQuestionIds.join(", ")}</small></p>) : <p>Chưa đủ câu đúng để xác định điểm mạnh.</p>}</div>
           <div className="weakness-box"><b>! Nên tập trung tiếp theo</b>{diagnosis.weaknesses.length ? diagnosis.weaknesses.map((item) => <p key={`${item.topic}-${item.misconception}`}>{item.topic}: {item.misconception}</p>) : <p>Không phát hiện điểm yếu trong lượt làm này.</p>}</div>
+          <div className="gap-box"><b>○ Hổng kiến thức cần kiểm tra</b>{diagnosis.knowledgeGaps.length ? diagnosis.knowledgeGaps.map((item) => <p key={`${item.topic}-${item.evidenceQuestionIds.join("-")}`}>{item.topic}: {item.reason}</p>) : <p>Không có câu nào bị bỏ qua.</p>}</div>
         </div>
       </div>
       <div className="result-grid">
         <section className="answer-summary">
-          <div className="section-title"><div><span>▤</span><div><h2>Tổng hợp câu trả lời</h2><p>Xem kết quả và nguồn của từng câu.</p></div></div><b>{score}/{questions.length} câu đúng</b></div>
+          <div className="section-title"><div><span>▤</span><div><h2>Tổng hợp câu trả lời</h2><p>Xem kết quả và nguồn của từng câu.</p></div></div><b>{score}/{answeredCount} đúng · {skippedCount} bỏ qua</b></div>
           {questions.map((question, index) => {
             const correct = answers[index] === question.correctOption;
+            const skipped = answers[index] === null;
             return (
-              <div className={`answer-row ${correct ? "pass" : "fail"}`} key={question.id}>
-                <span>{correct ? "✓" : "!"}</span>
+              <div className={`answer-row ${skipped ? "skipped" : correct ? "pass" : "fail"}`} key={question.id}>
+                <span>{skipped ? "○" : correct ? "✓" : "!"}</span>
                 <div>
                   <small>Câu {index + 1} · {question.topic}</small>
                   <a
@@ -659,9 +688,9 @@ function ResultScreen({
                     ▤ {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
                   </a>
                   <b>{question.question}</b>
-                  <p>{correct ? "Bạn trả lời đúng." : `Bạn chọn: ${answers[index] === null ? "Bỏ qua" : question.options[answers[index]!]}. Đáp án đúng: ${question.options[question.correctOption]}`}</p>
+                  <p>{skipped ? "Bạn đã bỏ qua câu này. Hệ thống ghi nhận đây là hổng kiến thức cần kiểm tra thêm." : correct ? "Bạn trả lời đúng." : `Bạn chọn: ${question.options[answers[index]!]}. Đáp án đúng: ${question.options[question.correctOption]}`}</p>
                 </div>
-                <em>{correct ? "Đúng" : "Cần ôn"}</em>
+                <em>{skipped ? "Hổng kiến thức" : correct ? "Đúng" : "Cần ôn"}</em>
               </div>
             );
           })}
@@ -715,9 +744,17 @@ function buildClientFallback(
   score: number,
 ): LearningDiagnosis {
   const correct = questions.filter((question, index) => answers[index] === question.correctOption);
-  const wrong = questions.filter((question, index) => answers[index] !== question.correctOption);
+  const wrong = questions.filter(
+    (question, index) =>
+      answers[index] !== null && answers[index] !== question.correctOption,
+  );
+  const skipped = questions.filter((_, index) => answers[index] === null);
+  const answeredCount = questions.length - skipped.length;
   return {
-    overallSummary: `Bạn trả lời đúng ${score}/${questions.length} câu. Kết quả được tổng hợp bằng luật vì AI phân tích tạm thời chưa sẵn sàng.`,
+    overallSummary:
+      answeredCount === 0
+        ? `Bạn đã bỏ qua toàn bộ ${skipped.length} câu. Các nội dung này được ghi nhận là hổng kiến thức cần kiểm tra thêm.`
+        : `Bạn trả lời đúng ${score}/${answeredCount} câu đã trả lời và bỏ qua ${skipped.length} câu. Kết quả được tổng hợp bằng luật vì AI phân tích tạm thời chưa sẵn sàng.`,
     strengths: correct.map((question) => ({ topic: question.topic, evidenceQuestionIds: [question.id] })),
     weaknesses: wrong.map((question) => ({
       topic: question.topic,
@@ -726,10 +763,19 @@ function buildClientFallback(
       evidenceQuestionIds: [question.id],
       sourceSlideIds: [question.sourceRef.slideId],
     })),
-    recommendations: wrong.slice(0, 3).map((question, index) => ({
+    knowledgeGaps: skipped.map((question) => ({
+      topic: question.topic,
+      reason:
+        "Bạn đã bỏ qua câu hỏi này; hệ thống chưa đủ bằng chứng để xác nhận mức độ hiểu.",
+      evidenceQuestionIds: [question.id],
+      sourceSlideIds: [question.sourceRef.slideId],
+    })),
+    recommendations: [...wrong, ...skipped].slice(0, 3).map((question, index) => ({
       priority: index + 1,
       knowledgePointId: question.topic,
-      reason: `Bạn chưa trả lời đúng câu ${question.id}.`,
+      reason: skipped.includes(question)
+        ? `Bạn đã bỏ qua câu ${question.id}; hãy xem lại nội dung nguồn rồi tự kiểm tra lại.`
+        : `Bạn chưa trả lời đúng câu ${question.id}.`,
       slideIds: [question.sourceRef.slideId],
       suggestedAction: `Xem lại ${slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)}`,
     })),

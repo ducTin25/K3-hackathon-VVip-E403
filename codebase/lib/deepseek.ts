@@ -7,6 +7,16 @@ type DeepSeekResponse = {
   error?: { message?: string };
 };
 
+const VIETNAMESE_OUTPUT_SYSTEM_PROMPT = `Bạn là AI phục vụ người học Việt Nam trong hệ thống VLearn.
+
+QUY TẮC NGÔN NGỮ BẮT BUỘC
+- Mọi nội dung hướng đến người học phải viết bằng tiếng Việt tự nhiên, rõ ràng và đúng chính tả.
+- Chỉ giữ tiếng Anh cho thuật ngữ chuyên ngành đã được dùng phổ biến hoặc không nên dịch, ví dụ: AI Agent, LLM, ReAct, Thought, Action, Observation, Tool Calling, Function Calling, API, system prompt, prompt injection.
+- Khi giữ thuật ngữ tiếng Anh, phần giải thích, câu hỏi và ngữ cảnh xung quanh vẫn phải là tiếng Việt.
+- Không viết nguyên câu hoặc nguyên đoạn bằng tiếng Anh, kể cả khi nguồn có nội dung tiếng Anh; phải diễn đạt lại bằng tiếng Việt.
+- Các key kỹ thuật của JSON phải giữ đúng schema được yêu cầu, nhưng mọi value dạng nội dung tự nhiên phải tuân thủ các quy tắc trên.
+- Chỉ trả về JSON hợp lệ theo schema trong yêu cầu, không thêm Markdown hoặc văn bản bên ngoài JSON.`;
+
 export async function callDeepSeekJson(
   prompt: string,
   options: { maxTokens?: number; signal?: AbortSignal } = {},
@@ -32,7 +42,10 @@ export async function callDeepSeekJson(
       },
       body: JSON.stringify({
         model,
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { role: "system", content: VIETNAMESE_OUTPUT_SYSTEM_PROMPT },
+          { role: "user", content: prompt },
+        ],
         thinking: { type: "disabled" },
         temperature: 0.2,
         max_tokens: options.maxTokens ?? 5000,
