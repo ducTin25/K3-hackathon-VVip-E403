@@ -1,23 +1,23 @@
-# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm VVip · Zone [ĐIỀN ZONE]
+# AI SPEC — Kiểm tra mức độ hiểu từ slide · Nhóm chưa khai báo · Zone chưa khai báo
 
-Hướng: [x] A - VLearn  [ ] B - Trợ lý Học viên  [ ] C - Làn mở  
+Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở  
 Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
 
-> Trạng thái: TV1 đã hoàn thiện §1, §2 và §4 từ mining + khảo sát tổng hợp `n=24`. Prototype CP2 hiện nằm trong `prototype/`.
+> **Trạng thái tài liệu:** hoàn thiện theo artifact đang có trong repository ngày 30/07/2026. Những nội dung chưa có bằng chứng/trace/validation được ghi là **chưa xác minh**, không được coi là kết quả đã đạt.
 
 ## §1. User & Job
 
-### Job executor
+### Job executor và workflow
 
-**Học viên vừa đọc xong một phần bài giảng và muốn biết mình đã hiểu, nhớ đúng phần đó hay chưa.**
+**Job executor:** học viên vừa học xong một phần slide lý thuyết và sắp chuyển sang nội dung hoặc bài tập tiếp theo.
 
-Workflow hiện tại:
+**Workflow hiện tại:**
 
-1. Đọc slide/tài liệu.
-2. Gặp phần không chắc hoặc muốn ôn lại.
-3. Đọc lại, tua video, hỏi bạn/TA/tutor hoặc xin tóm tắt.
-4. Tự phán đoán mình đã hiểu hay chưa.
-5. Chuyển bài dù có thể vẫn còn lỗ hổng.
+1. Đọc slide hoặc xem lại bài giảng.
+2. Cảm thấy chưa chắc về một hay nhiều khái niệm.
+3. Đọc lại, tua video, hỏi bạn/TA/Tutor hoặc xin tóm tắt.
+4. Tự suy đoán đã hiểu hay chưa.
+5. Chuyển bài, trong khi lỗ hổng kiến thức có thể vẫn còn.
 
 ### Core JTBD
 
@@ -25,241 +25,237 @@ Workflow hiện tại:
 
 ### Problem statement
 
-> Sau khi đọc bài giảng, học viên chưa có cách nhanh để tự kiểm tra phần nào đã hiểu và phần nào còn hổng; họ chủ yếu đọc lại, hỏi giải thích hoặc xin tóm tắt, nên dễ nhầm cảm giác “đã xem” với “đã nắm được kiến thức”.
+Sau khi đọc bài giảng, học viên chưa có một cách ngắn, có căn cứ để tự kiểm tra mình sai ở khái niệm nào. Việc đọc lại hoặc hỏi giải thích giúp tiếp cận nội dung, nhưng không xác nhận được học viên có áp dụng/nhớ đúng hay chỉ có cảm giác “đã xem”. Hậu quả là học viên có thể mang ngộ nhận sang bài tập hoặc bài tiếp theo.
 
 ### Evidence
 
-#### Đường A - khảo sát desirability
+#### Đường A — khảo sát về mức quan tâm giải pháp
 
-- Tổng phản hồi: **24**.
-- Muốn làm quiz sau bài lý thuyết: **23/24 = 95,8%**.
-- Muốn tổng hợp kiến thức và đánh giá điểm yếu: **23/24 = 95,8%**.
-- Phạm vi được chọn nhiều nhất:
-  - Cả bài: **15/24 = 62,5%**.
-  - Từng chương: **13/24 = 54,2%**.
-  - Từng điểm kiến thức: **8/24 = 33,3%**.
-  - Câu này cho chọn nhiều đáp án.
-- Số câu được chọn nhiều nhất: **10 câu, 10/24 = 41,7%**.
-- Loại câu được chọn nhiều nhất: **Trắc nghiệm, 14/24 = 58,3%**.
-- Kết quả chi tiết: `evidence/survey-results.md`.
-- Dữ liệu máy đọc: `evidence/survey-aggregate.csv`.
-- Ảnh gốc: `docs/form_results/`.
+`spec.md` hiện ghi nhận một khảo sát tổng hợp **n = 24** với các số liệu:
 
-Giới hạn:
+| Tín hiệu | Kết quả được ghi nhận |
+|---|---:|
+| Muốn làm quiz sau bài lý thuyết | 23/24 (95,8%) |
+| Muốn tổng hợp kiến thức/đánh giá điểm yếu | 23/24 (95,8%) |
+| Chọn ôn toàn bài | 15/24 (62,5%) |
+| Chọn ôn theo chương | 13/24 (54,2%) |
+| Chọn 10 câu | 10/24 (41,7%) |
+| Chọn trắc nghiệm | 14/24 (58,3%) |
 
-- Ảnh chưa xác minh cả 24 người đều ngoài nhóm.
-- Chưa có raw log từng phản hồi trong repo.
-- Form hỏi trực tiếp mức mong muốn với quiz, chưa đo tần suất/thời gian của pain.
-- Chưa có quote nguyên văn hoặc danh sách ≥3 willing users.
+Các file raw log, danh sách người trả lời và ảnh form được `spec.md` tham chiếu **không có trong repository hiện tại**. Vì vậy các số liệu trên chỉ là bằng chứng *desirability đã được báo cáo*, chưa thỏa chuẩn khảo sát của rubric (không xác minh được 24 người ngoài nhóm, từng câu trả lời nguyên văn và tần suất pain). Chúng không được diễn giải thành “95,8% học viên gặp pain”.
 
-Vì vậy, `95,8%` được dùng để chứng minh **mức quan tâm tới giải pháp**, không được viết thành `95,8% học viên đang gặp pain`.
+#### Đường B — mining/chatlog
 
-#### Đường B - mining sơ bộ
+`spec.md` báo cáo mining trên 1.261 lượt student/tutor với 419 lượt hỏi giải thích/làm rõ (33,2%), 129 lượt hỏi tóm tắt/tổng hợp (10,2%), 3 lượt nhắc quiz và 3 lượt Tutor hỏi kiểm tra hiểu. Các `source_ref` trong `eval/golden-set.csv` cũng giữ mã hội thoại/transcript thay vì chép dữ liệu gốc.
 
-Nguồn: `data/vlearn-pack/chatlog/chat_history_anonymized_for_hackathon.csv`.
+Tuy nhiên data pack và các file phương pháp/quote (`evidence/mining-method.md`, `evidence/mining-examples.csv`) không có trong repository hiện tại. Do đó con số không thể tái kiểm từ repo này. Nó chỉ cho thấy nhóm đã định hướng mining vào nhu cầu giải thích/tổng hợp; trước khi nộp chính thức cần bổ sung phương pháp đếm, mẫu số, quy tắc phân loại và ít nhất 5 trích dẫn ngắn theo mã nguồn.
 
-Phương pháp tái lập: `evidence/mining-method.md`.
+### Kết luận evidence hiện tại
 
-| Tín hiệu | Số turn | Tỷ lệ trên 1.261 student/tutor turns |
-|---|---:|---:|
-| Query giải thích/không hiểu/làm rõ | 419 | 33,2% |
-| Query tóm tắt/tổng hợp | 129 | 10,2% |
-| Query trực tiếp nhắc quiz/trắc nghiệm | 3 | 0,24% |
-| Tutor chủ động hỏi kiểm tra hiểu | 3 | 0,24% |
-| Tutor có follow-up khác rỗng | 0 | 0% |
-| Tutor có misconception khác rỗng | 0 | 0% |
-
-Ví dụ ngắn có mã nguồn nằm tại `evidence/mining-examples.csv`, gồm:
-
-- `T0849`: yêu cầu tạo quiz để hiểu và ôn lại toàn bộ slide.
-- `T0257`: xin tóm tắt để làm quiz cuối giờ.
-- `T0907`: nêu chủ đề quiz từ bài giảng.
-- `T0649`, `T0699`, `T0415`, `T1019`: yêu cầu tóm tắt/tổng hợp kiến thức.
-- `T0959`: yêu cầu giải thích kiến thức.
-
-**Giới hạn diễn giải:** mining chứng minh cơ hội hỗ trợ học hiểu/ôn lại và khoảng trống kiểm tra hiểu của tutor. Khảo sát `n=24` bổ sung bằng chứng desirability rất cao cho giải pháp quiz.
+Có tín hiệu hợp lý cho job “tự kiểm tra hiểu bài”, và Golden set đã chứa 20 case có nguồn tham chiếu. Nhưng evidence **chưa đạt chuẩn A hoặc B có thể kiểm lại hoàn toàn** vì thiếu raw log/mining artifact trong repo. Đây là rủi ro ưu tiên cao của bài nộp.
 
 ## §2. Impact & quyết định chọn
 
-Chi tiết: `evidence/impact-analysis.md`.
-
-| Pain/ứng viên | Bằng chứng hiện có | Người gặp × tần suất × tổn thất | Khả thi | Quyết định |
+| Ứng viên | Bằng chứng hiện có | Người gặp × tần suất × tổn thất | Khả thi trong hackathon | Quyết định |
 |---|---|---|---|---|
-| Không biết mình đã hiểu đúng; tạo quiz có nguồn để tự kiểm tra | 23/24 muốn quiz; 23/24 muốn tổng hợp điểm yếu; tutor hỏi kiểm tra hiểu 3/1.261 lượt | 23/24 bày tỏ nhu cầu giải pháp × tần suất chưa đo × tổn thất chưa đo | Cao với trắc nghiệm, một bài mẫu | **Chọn** |
-| Mất thời gian rút ý chính; tạo tóm tắt có nguồn | 129/1.261 query tóm tắt/tổng hợp | Chưa suy ra user duy nhất; chưa đo phút | Rất cao | Loại tạm: tutor đã có khả năng tóm tắt, khác biệt thấp |
-| Không hiểu đoạn slide; cải thiện giải thích theo đoạn | 419/1.261 query giải thích/làm rõ | Chưa suy ra user duy nhất; chưa đo hậu quả | Cao | Loại tạm: trùng năng lực lõi tutor hiện tại |
+| Quiz chẩn đoán có nguồn sau khi học | Khảo sát báo 23/24 muốn quiz và tổng hợp điểm yếu; 3 lượt quiz, 3 lượt Tutor chủ động kiểm tra hiểu được báo cáo | Có 23 người bày tỏ nhu cầu giải pháp; tần suất và phút tổn thất **chưa đo** | Cao: một bài mẫu, MCQ, chấm theo luật | **Chọn** |
+| Tóm tắt có nguồn | 129/1.261 lượt tóm tắt/tổng hợp được báo cáo | Người/tần suất/phút chưa phân tách được | Cao | Loại tạm: job gần với năng lực Tutor hiện tại, khác biệt thấp |
+| Giải thích lại đoạn slide | 419/1.261 lượt hỏi giải thích/làm rõ được báo cáo | Người/tần suất/hậu quả chưa đo | Cao | Loại tạm: trùng năng lực Tutor, không trực tiếp kiểm tra hiểu |
 
-### Lý do chọn ứng viên quiz
+**Lý do chọn:**
 
-1. Khớp ví dụ “kiểm tra hiểu thật cuối buổi” của Hướng A.
-2. Hành vi hiện tại gần như không chủ động kiểm tra hiểu hoặc tạo follow-up.
-3. Demo được trong 5 phút.
-4. Có tiêu chí đo rõ: groundedness, đúng phạm vi, một đáp án đúng và giải thích có nguồn.
-5. Prototype CP2 đã có flow làm quiz và xem kết quả.
-6. Khảo sát cho thấy 95,8% muốn quiz và 95,8% muốn tổng hợp kiến thức/điểm yếu.
-7. Kết quả thiết kế rõ: ưu tiên cả bài/chương, mặc định 10 câu, loại trắc nghiệm.
+1. Khớp Hướng A và ví dụ “kiểm tra hiểu thật cuối buổi”.
+2. Có một lát cắt demo rõ: chọn nguồn → AI quyết định có đủ căn cứ → sinh câu hỏi → làm bài → xem phần cần ôn.
+3. Sai lầm có thể được giảm bằng grounding, schema và refusal; chấm trắc nghiệm không cần AI lần hai.
+4. Chất lượng có thể đo bằng groundedness, tính đơn đáp án, tính đúng trích dẫn và hành vi từ chối.
+5. Thiết kế khảo sát được báo cáo ưu tiên toàn bài/chương, 10 câu và trắc nghiệm.
 
-### Phần evidence còn phải xác minh
-
-- Xác nhận 24 respondent đều ngoài nhóm.
-- Export raw log hoặc bản ẩn danh.
-- Bổ sung ≥3 người đồng ý thử prototype.
-- Nếu còn thời gian, đo tần suất pain và thời gian/tổn thất mỗi lần.
-- Có nguồn bài học ổn định.
-- CP3 thay câu hỏi hardcode bằng AI call thật.
-
-Những trường còn thiếu phải được trình bày trung thực; không tự suy ra từ biểu đồ.
+**Giới hạn impact:** chưa có số liệu tần suất thực, thời gian mất mỗi lần hoặc số học viên bị ảnh hưởng. Vì thế impact chưa được lượng hóa đầy đủ; không dùng số dashboard mock (862, 57%...) làm bằng chứng impact.
 
 ## §3. Giải pháp tương tự đã nghiên cứu
 
-> Owner: cả nhóm. Mỗi thành viên điền một sản phẩm theo 4 ý: flow / đáng học / đáng né / khác biệt của nhóm.
+Phần này là so sánh thiết kế ở mức desk research; repository không lưu log dùng thử nên không khẳng định nhóm đã kiểm chứng từng sản phẩm.
 
-- Quizlet AI: `[TODO]`
-- NotebookLM: `[TODO]`
-- ChatGPT Study: `[TODO]`
-- Khanmigo: `[TODO]`
-- Kahoot AI: `[TODO]`
+| Giải pháp | Flow liên quan | Điều áp dụng | Điều cần tránh | Khác biệt của lát cắt này |
+|---|---|---|---|---|
+| Quizlet AI | Học từ bộ học liệu qua flashcard/quiz | Biến học liệu thành câu hỏi ngắn, cho phép ôn lặp | Không để câu hỏi tách khỏi phần học viên vừa học | Mỗi câu bắt buộc trỏ về `sourceId`/trang nguồn cụ thể |
+| NotebookLM | Hỏi/tổng hợp trên tập nguồn người dùng cung cấp | Hiển thị căn cứ gần với đầu ra để người dùng kiểm | Không tạo cảm giác citation là bảo chứng nếu nguồn không đủ | Nếu nguồn mơ hồ, trả `insufficient_source`, không cố tạo câu |
+| ChatGPT Study Mode | Hỏi đáp theo từng bước và kiểm tra hiểu | Tập trung vào hiểu/áp dụng thay vì chỉ tóm tắt | Không tự khẳng định người học đã “nắm chắc” chỉ từ một câu | Kết quả chỉ đề xuất phần cần xem lại, không là điểm chính thức |
+| Khanmigo | Gia sư gợi mở, hỗ trợ giáo viên | Dùng feedback để chỉ ra reasoning/misconception | Không để AI thay giảng viên quyết định can thiệp học thuật | Giảng viên duyệt mini-quiz/can thiệp; dashboard chỉ là mock ngoài lát cắt |
+| Kahoot AI | Sinh câu hỏi nhanh từ nội dung | Cấu trúc MCQ và trải nghiệm trả lời nhanh | Không phát hành câu hỏi chỉ vì sinh được đúng định dạng | Yêu cầu nguồn hợp lệ, một đáp án đúng rõ, distractor gắn misconception |
 
 ## §4. Thiết kế
 
-### Lát cắt một câu
+### Lát cắt MỘT CÂU
 
-> **Một học viên vừa đọc xong một phạm vi bài giảng chọn phần cần ôn; hệ thống quyết định 10 câu trắc nghiệm có căn cứ, đáp án và giải thích để học viên nhận ra phần đã nắm và phần cần xem lại.**
+> **Một học viên vừa đọc xong một phạm vi bài giảng cung cấp đoạn slide; hệ thống quyết định có đủ căn cứ để tạo một câu trắc nghiệm chẩn đoán có nguồn, đáp án và giải thích, để học viên nhận ra phần cần xem lại.**
+
+Lát cắt dùng **một câu AI tạo thật** vì artifact hiện có (`generateDiagnosticQuiz`) chỉ sinh một câu; UI demo bốn câu hiện là mock. Mục tiêu 10 câu là roadmap sau khi tích hợp vòng sinh nhiều câu và quality gate.
 
 ### Non-goals
 
-1. Không xây đăng nhập production.
-2. Không hỗ trợ toàn bộ bài giảng của khóa; demo end-to-end trên một bài.
-3. Không chấm câu hỏi tự luận trong MVP.
-4. Không cập nhật điểm chính thức của học viên.
-5. Không cá nhân hóa dài hạn qua nhiều buổi.
-6. Không triển khai analytics/dashboard giảng viên bằng dữ liệu thật; dashboard đang có chỉ là mock phụ trợ, không thuộc lát cắt được đánh giá.
+1. Không xây LMS, đăng nhập production, điểm chính thức hoặc xếp hạng.
+2. Không tự thay đổi giáo án hay tự gửi nội dung cho lớp.
+3. Không chấm tự luận hoặc đánh giá năng lực tổng quát của học viên.
+4. Không trả lời kiến thức ngoài đoạn slide/học liệu đã chọn.
+5. Không triển khai dashboard giảng viên bằng dữ liệu thật; dashboard trong `codebase/app/page.tsx` là minh họa phụ trợ.
+6. Không cá nhân hóa dài hạn qua nhiều buổi hay lưu hồ sơ học tập trong bản hiện tại.
 
-### Mức prototype
+### Mức prototype và phần thật/mock
 
-Nhắm tới: [ ] Sketch  [x] Mock  [ ] Working.
+Mức khai báo: [x] Mock  [ ] Sketch  [ ] Working.
 
-Hiện trạng CP2 trong `prototype/`:
-
-| Thành phần | Trạng thái |
+| Thành phần | Hiện trạng kiểm chứng từ code |
 |---|---|
-| Flow đọc bài → bắt đầu quiz → trả lời → kết quả | Bấm được |
-| Chấm điểm | Rule-based theo mảng đáp án |
-| Giải thích và nguồn slide | Nội dung mock |
-| Bộ câu hỏi | 4 câu hardcode trong `prototype/app/page.tsx` |
-| Chọn cả bài/chương/điểm kiến thức | Chưa có trong prototype |
-| AI call tạo quiz | Chưa có |
-| Dashboard giảng viên | Mock với số liệu giả, ngoài lát cắt |
-
-Khoảng cách phải đóng trước CP3:
-
-1. Thêm AI call thật ở quyết định tạo quiz.
-2. Tạo 10 câu theo lựa chọn cao nhất của khảo sát; prototype hiện chỉ có 4.
-3. Thêm chọn phạm vi hoặc sửa lát cắt/spec nếu nhóm quyết định bỏ lựa chọn này.
-4. Lưu trace input/output.
-5. Không trình bày số liệu dashboard mock như số thật.
+| Đọc bài → bắt đầu quiz → chọn đáp án → xem điểm/kết quả | Bấm được trong `codebase/app/page.tsx` |
+| Chấm MCQ | Rule-based theo mảng `questions` hard-code |
+| Nguồn/giải thích trong UI | Mock theo 4 câu hard-code |
+| AI quyết định tạo/refuse một quiz item | Có hàm thật `generateDiagnosticQuiz` gọi DeepSeek, prompt/schema/validator trong `codebase/lib/quiz-generator.ts` |
+| API AI | Có `POST /api/generate-quiz` |
+| AI nối với flow UI | **Chưa có:** UI không gọi API; `rg` chỉ thấy sử dụng mảng `questions` hard-code |
+| Chọn toàn bài/chương/điểm kiến thức | Chưa có |
+| 10 câu AI tạo | Chưa có; API sinh đúng một câu |
+| Dashboard/AI Brief | Mock, số liệu không phải dữ liệu lớp thật |
+| Persistence, auth, database | Chưa có; schema mặc định trống |
 
 ### Automation
 
 Chọn: [ ] Augment  [x] Conditional  [ ] Automate.
 
-Lý do theo cost-of-error:
+- **Case đủ căn cứ:** AI tự sinh một câu nháp có cấu trúc; ứng dụng kiểm tra identity nguồn, 4 lựa chọn, vị trí đáp án và misconception trước khi trả về.
+- **Case thiếu/mơ hồ/ngoài nguồn:** AI phải trả `insufficient_source`; ứng dụng không phát hành câu hỏi và yêu cầu chọn đoạn nguồn rõ hơn.
+- **Case có rủi ro học thuật:** với bản triển khai, giảng viên/nội dung duyệt ngân hàng câu trước khi phát hành rộng. Trong prototype, người dùng chỉ dùng kết quả để tự ôn, không phải điểm chính thức.
 
-- Câu hỏi sai hoặc đáp án mơ hồ có thể khiến học viên học sai.
-- User không phải lúc nào cũng đủ kiến thức để phát hiện lỗi.
-- Hệ thống chỉ tự tạo khi câu hỏi/đáp án/giải thích trace được về nguồn đã chọn.
-- Khi nguồn thiếu hoặc phạm vi mơ hồ, hệ thống yêu cầu thu hẹp phạm vi hoặc không tạo quiz.
-- Chấm trắc nghiệm là so sánh đáp án bằng luật, không gọi AI lần hai.
+Lý do: câu sai hoặc hai đáp án đúng có thể làm học viên học sai; chi phí sửa không rẻ vì người học có thể không tự phát hiện. Ngược lại, từ chối tạo câu khi nguồn thiếu là chi phí thấp và có đường lui rõ ràng.
 
 ### Flow mục tiêu
 
-1. Học viên chọn bài.
-2. Bấm `Tạo quiz`.
-3. Chọn `cả bài`, `từng chương` hoặc `điểm kiến thức`.
-4. Hệ thống lấy source chunks tương ứng.
-5. AI tạo 10 câu trắc nghiệm theo schema, mỗi câu có `source_ref`.
-6. Học viên trả lời.
-7. Hệ thống chấm theo đáp án.
-8. Hiển thị điểm, giải thích, nguồn và phần cần xem lại.
+1. Học viên chọn bài và phạm vi (toàn bài/chương/điểm kiến thức).
+2. Hệ thống hiển thị nguồn đang dùng và tạo request gồm `sourceId`, trang và đoạn slide.
+3. AI tạo một quiz item hoặc trả `insufficient_source`.
+4. Ứng dụng validate schema và tính nhất quán nguồn; case lỗi không được phát hành.
+5. Học viên trả lời MCQ; hệ thống chấm theo đáp án được tạo/đã duyệt.
+6. Hệ thống hiển thị giải thích, trích dẫn, misconception và đường mở lại nguồn.
+7. Học viên làm lại hoặc thu hẹp phạm vi; giảng viên chỉ xem dữ liệu tổng hợp sau khi có persistence và phân quyền.
 
 ### §4b. Nguyên tắc HAX/PAIR
 
-| Nguyên tắc | Áp cụ thể vào đâu | Hiện trạng CP2 |
+| Nguyên tắc | Áp dụng cụ thể | Hiện trạng |
 |---|---|---|
-| G1 - Làm rõ hệ thống làm được gì | Quiz card ghi “AI tạo từ slide”; phạm vi chỉ là nội dung bài đã chọn | Có một phần |
-| G2 - Làm rõ hệ thống làm tốt đến đâu | Mỗi câu có trang nguồn; cần bổ sung trạng thái confidence/giới hạn | Có nguồn mock, thiếu confidence |
-| G10 - Thu hẹp phạm vi khi nghi ngờ | Thiếu nguồn hoặc phạm vi quá rộng → yêu cầu chọn chương/điểm kiến thức | Chưa implement |
-| G11 - Giải thích vì sao | Sau mỗi câu hiển thị giải thích và nút xem lại trang nguồn | Đã có trong mock |
-| G9 - Sửa dễ dàng | Cho làm lại quiz; mục tiêu thêm báo/tạo lại một câu sai hoặc mơ hồ | Có làm lại toàn bộ, chưa sửa từng câu |
-| PAIR - Trust/Explainability | Không chỉ hiện điểm; chỉ ra căn cứ và nội dung cần xem lại | Có trong mock, nguồn chưa nối dữ liệu thật |
+| G1 — Làm rõ hệ thống làm được gì | Prompt giới hạn nhiệm vụ thành một câu MCQ hiểu/áp dụng từ `SOURCE`; UI ghi “AI tạo từ slide”. | Prompt có; UI chỉ mock |
+| G2 — Làm rõ nó làm tốt đến đâu | Output có `confidence`, `sourceId`, `sourcePage`; UI mục tiêu hiển thị nguồn để người học kiểm lại. | API có trường; UI chưa nối API/confidence |
+| G10 — Thu hẹp phạm vi khi nghi ngờ | Prompt yêu cầu `insufficient_source` khi nguồn ngắn/mơ hồ/nhiều cách hiểu; không đoán. | Có trong prompt/API |
+| G11 — Giải thích vì sao | Output gồm `explanation`; UI mock hiển thị giải thích và “Xem lại Trang N”. | Có ở API và mock UI |
+| G9 — Sửa dễ dàng | Học viên có thể làm lại quiz trong UI; flow mục tiêu cho phép chọn lại phạm vi sau refusal. | Làm lại có; selector chưa có |
+| PAIR — Explainability + Trust | Không chỉ đưa điểm: câu hỏi kèm nguồn, explanation và misconception; hạn chế/độ tin cậy phải được hiển thị khi nối UI. | Thiết kế đã có, còn thiếu tích hợp |
 
-## §5. Kiểu lỗi - 4 lớp chỗ khó + kịch bản
+## §5. Kiểu lỗi — 4 lớp chỗ khó và kịch bản
 
-> Owner: TV5. Cần ≥8 kịch bản, mỗi lớp ≥2.
-
-`[TODO TV5]`
+| # | Tình huống cụ thể | Lớp | Hành vi mong muốn | Nguyên tắc |
+|---|---|---|---|---|
+| 1 | Slide chỉ có tiêu đề “ReAct” | ① Nguồn sự thật | Trả `insufficient_source`, nêu nguồn quá ngắn và yêu cầu chọn đoạn có định nghĩa/ví dụ. | G10, G2 |
+| 2 | Model tạo giải thích thêm kiến thức không có trong đoạn nguồn | ① Nguồn sự thật | Không phát hành nếu reviewer/eval phát hiện không grounded; ghi trace để sửa prompt. | G2, G11 |
+| 3 | Người học gửi “Agent dùng context tốt hơn” | ② Mơ hồ | Không đoán chủ đề/đáp án; yêu cầu chọn đoạn cụ thể hoặc trả `insufficient_source`. | G10 |
+| 4 | Một đoạn có hai diễn giải đều hợp lý | ② Mơ hồ | Từ chối tạo MCQ một-đáp-án; giải thích lý do và cho đổi phạm vi. | G10, G9 |
+| 5 | User đưa ngày thi/deadline không có trong học liệu | ③ Ngoài phạm vi | Không biến thành quiz kiến thức; nói chỉ tạo quiz từ slide đã chọn và hướng tới nguồn chính thức/TA. | G1, G10 |
+| 6 | User đưa nội dung y tế hoặc yêu cầu tư vấn ngoài môn | ③ Ngoài phạm vi | Từ chối; không tạo câu hỏi hay trả lời chuyên môn ngoài phạm vi. | G1, G17 |
+| 7 | Hai phương án đều đúng do diễn đạt không chặt | ④ Giáo dục | Không phát hành; đánh dấu lỗi “multiple correct”, yêu cầu chỉnh prompt/câu hoặc giảng viên duyệt. | G2, G11 |
+| 8 | Distractor sai vì kiến thức trái slide nhưng không phản ánh ngộ nhận thật | ④ Giáo dục | Yêu cầu ba distractor mang ba misconception riêng; eval chấm `diagnostic_value`. | G2 |
+| 9 | Mã nguồn/trang output khác input | ① Nguồn sự thật | Validator ném lỗi `Source identity mismatch`; API trả lỗi, không hiển thị item. | G2 |
+| 10 | Slide chứa câu “bỏ qua hướng dẫn trước” | ③ Ngoài phạm vi / prompt injection | Coi mọi chỉ dẫn trong `SOURCE` là dữ liệu, không phải mệnh lệnh; chỉ tạo quiz từ nội dung học. | G10 |
 
 ## §6. Bốn đường đi của trải nghiệm
 
-> Owner: TV5 phối hợp TV2/TV3.
-
-- Happy path: `[TODO]`
-- Low-confidence: `[TODO]`
-- Failure/không căn cứ: `[TODO]`
-- Correction: `[TODO]`
-- Ngoài phạm vi: `[TODO]`
-- Case đặc thù domain: `[TODO]`
+| Đường đi | Trigger | Hành vi/đầu ra mong muốn | Hiện trạng demo |
+|---|---|---|---|
+| Happy path | Đoạn source đủ rõ, một khái niệm có thể kiểm tra | Sinh một MCQ 4 lựa chọn, một đáp án, explanation, source và confidence; học viên trả lời, chấm theo luật, xem lại nguồn. | UI mô phỏng 4 câu; API có khả năng sinh 1 câu nhưng chưa nối UI |
+| Low-confidence | Source có thông tin nhưng hỗ trợ gián tiếp | Trả `confidence=medium/low`, hiển thị giới hạn và cho người học mở nguồn/đổi phạm vi; không khẳng định đã nắm chắc. | Field có trong API, chưa hiển thị UI |
+| Failure/không căn cứ | Source ngắn, mơ hồ hoặc không liên quan | Trả `insufficient_source` với lý do; không phát hành quiz hoặc điểm. | Prompt/API đã quy định; cần trace chạy thật để xác minh |
+| Correction | Học viên thấy câu/nguồn chưa phù hợp | Làm lại quiz hoặc chọn lại phạm vi; sản phẩm triển khai thêm nút báo lỗi câu hỏi. | Làm lại có; selector/báo lỗi chưa có |
+| Ngoài phạm vi | Dữ liệu logistics/y tế/không thuộc slide | Từ chối đúng phạm vi, hướng user đến nguồn chính thức/TA. | Có case Golden set, chưa có kết quả chạy |
+| Đặc thù domain | Có hai đáp án đúng hoặc kiến thức không grounded | Chặn phát hành/đưa giảng viên duyệt; không chấm sai học viên. | Validator chưa chứng minh được semantic correctness; phải dựa eval + review |
 
 ## §7. Kiểm thử
 
-> Owner: TV4.
+### Chiều chất lượng và định nghĩa kiểm chứng được
 
-- Chiều chất lượng: groundedness, scope relevance, answerability, distractor quality, explanation, graceful failure, output validity.
-- Golden set: `[TODO ≥20 case]`.
-- Quality bar đề xuất để nhóm duyệt trước 23:59:
+| Chiều | Pass khi | Fail khi |
+|---|---|---|
+| Output validity | JSON parse được, status hợp lệ; generated có 4 options, 4 misconceptions, `correctOption` 0–3 | Thiếu trường, sai schema, sai số lựa chọn |
+| Groundedness | Mọi mệnh đề quyết định đáp án/explanation có trong input source | Thêm kiến thức ngoài nguồn hoặc bịa nguồn |
+| Scope & refusal | Case nguồn đủ → `generated`; case mơ hồ/ngoài phạm vi → `insufficient_source` | Sinh câu từ source thiếu hoặc từ chối source đủ rõ |
+| Single correct | Một và chỉ một phương án được source hỗ trợ là đúng | ≥2 đáp án đúng hoặc không có đáp án đúng |
+| Citation correctness | `sourceId` và `sourcePage` đúng input | Sai mã nguồn/trang |
+| Diagnostic value | Ba distractor phản ánh ba misunderstanding khác nhau, không chỉ vô lý | Nhiễu trùng/lộ liễu/không liên quan |
+| Graceful failure | Refusal nêu lý do ngắn và gợi ý chọn nguồn rõ hơn | Hallucinate, lỗi mơ hồ hoặc trả quiz một phần |
 
-> **Đạt khi ≥80% case pass toàn bộ tiêu chí, 100% câu hỏi có `source_ref` hợp lệ, và không có câu hỏi sai kiến thức hoặc có hai đáp án đúng.**
+Hai người chấm độc lập cần kiểm tra tối thiểu 5 output trên các chiều semantic (groundedness, single correct, diagnostic value), thống nhất rubric trước khi chấm toàn bộ.
 
-- Kết quả lượt chạy: `[TODO TV4]`.
+### Golden set
 
-## §8. Phân công & kế hoạch
+`eval/golden-set.csv` có **20 case**: 15 case bình thường/domain/rare lấy từ mã chatlog/transcript và 5 case synthetic mơ hồ, ngoài phạm vi hoặc adversarial. Phân bố:
 
-Chi tiết công việc, handoff và Definition of Done: `docs/phan-cong-cong-viec-cap-nhat.md`.
+| Nhóm | Case |
+|---|---|
+| Case bình thường/học liệu | GS001–GS015 (15) |
+| Mơ hồ | GS016–GS017 (2) |
+| Ngoài phạm vi | GS018–GS019 (2) |
+| Adversarial/prompt injection | GS020 (1) |
 
-| Vai trò | Thành viên | Việc chính hiện tại | Artifact |
+Golden set đáp ứng số lượng 20 và có ≥10 case tham chiếu data thật bằng `source_ref`, nhưng không thể kiểm nội dung data gốc trong repo hiện tại. Bộ này có hai case cho lớp ① (grounded/citation qua case thường và validator), hai case cho lớp ② (GS016–017), hai case cho lớp ③ (GS018–019), và case domain/semantic khó GS005/008/009/012–015 cho lớp ④. Cần bổ sung ít nhất một case “hai đáp án đúng” rõ ràng để phủ trực tiếp rủi ro số 7.
+
+### Quality bar (giữ nguyên)
+
+> **Đạt khi ≥80% case pass toàn bộ tiêu chí, 100% output generated có `source_ref` hợp lệ, và không có case generated nào sai kiến thức hoặc có hai đáp án đúng.**
+
+Quality bar này đã có trong `spec.md`; `new_spec.md` giữ nguyên, không điều chỉnh theo kết quả.
+
+### Kết quả các lượt chạy
+
+| Lượt | Trạng thái | Kết quả | Diễn giải |
 |---|---|---|---|
-| TV1 - Product/Evidence/Spec Integrator | `[ĐIỀN TÊN]` | Nguồn bài học, raw survey/willing users, hợp nhất spec | `evidence/`, `spec.md` |
-| TV2 - Frontend/UX/Integration | `[ĐIỀN TÊN]` | Scope selector, 10 câu, gọi API, state lỗi, test | `prototype/app/`, `prototype/tests/`, prototype README |
-| TV3 - AI Backend/Grounding | `[ĐIỀN TÊN]` | AI call thật, prompt/schema, nguồn, fallback, trace | `prototype/app/api/`, `prototype/lib/`, `prototype/prompts/`, `eval/traces/` |
-| TV4 - Evaluation/Quality Gate | `[ĐIỀN TÊN]` | Golden set ≥20, rubric, run 1/run 2, quality bar | `eval/` |
-| TV5 - Risk/Validation/Demo | `[ĐIỀN TÊN]` | 8 risk scenarios, 4 paths, 5 user tests, slide/dry run | `validation/`, `demo-script.md`, `demo-slides.pdf` |
+| Run 01 | Chưa chạy | `eval/run-01-results.csv` chỉ có header | Chưa có `DEEPSEEK_API_KEY`, không có trace trong `eval/traces/`; không được báo cáo tỷ lệ pass |
 
-Willing users:
+Script `eval/run-deepseek-eval.mjs` có sẵn để gọi DeepSeek và ghi output; sau khi có key cần chạy toàn bộ 20 case, lưu trace đã được làm sạch dữ liệu nhạy cảm, chấm các tiêu chí semantic và cập nhật bảng này — kể cả case fail.
 
-1. `[CHƯA THU THẬP - form hiện tại không hỏi]`
-2. `[CHƯA THU THẬP - form hiện tại không hỏi]`
-3. `[CHƯA THU THẬP - form hiện tại không hỏi]`
+## §8. Phân công và kế hoạch
 
-Kế hoạch validation: `[TODO TV5 sau khi có willing users]`.
+Repository chưa khai báo tên/mã thành viên, nên không tự gán tên giả. Dưới đây là phân công theo vai trò cần được đội điền tên trước khi nộp.
 
-Multi-prototype: `[TODO nếu thực hiện]`.
+| Vai trò | Chủ sở hữu | Việc/Definition of Done | Artifact |
+|---|---|---|---|
+| Product & Evidence | Chưa khai báo | Bổ sung mining/survey log tái kiểm, bảng impact có tần suất/tổn thất | `evidence/` hoặc thư mục tương đương |
+| Frontend & Integration | Chưa khai báo | Nối UI với `POST /api/generate-quiz`, hiển thị loading/refusal/confidence/source, bỏ hard-code ở flow AI | `codebase/app/page.tsx` |
+| AI Backend & Grounding | Chưa khai báo | Duy trì schema/validator/prompt, thêm kiểm tra semantic/review và trace an toàn | `codebase/lib/`, `eval/prompts/`, `eval/traces/` |
+| Evaluation | Chưa khai báo | Chạy đủ Golden set, hai người chấm case khó, ghi đầy đủ kết quả và failure | `eval/` |
+| Validation & Demo | Chưa khai báo | Tuyển user, test 5 phiên, cập nhật feedback/changelog và demo case fail | `validation/`, slide/demo script |
+
+### Willing users và validation CP5
+
+Chưa có willing user hay feedback thực tế: `validation/feedback-log.csv` chỉ có header. Không bịa tên/quote. Trước CP5 cần có ít nhất 3 người đồng ý thử (tối thiểu 2 người xuất hiện trong log 5 người), sau đó chạy mỗi phiên 10 phút:
+
+1. Giao task: “Hãy dùng quiz này để kiểm tra phần vừa học và tìm chỗ cần ôn.”
+2. Im lặng quan sát thao tác chọn nguồn, hiểu câu hỏi/nguồn, phản ứng với refusal và kết quả.
+3. Hỏi: “Điều gì khó hiểu/khó chịu nhất?”, “Bạn có tin kết quả không, vì sao?”, “Bạn có dùng thật không, vì sao?”.
+4. Ghi tên/vai, quote nguyên văn, mức nghiêm trọng và quyết định vào `validation/feedback-log.csv`.
+
+### Multi-prototype
+
+Chưa có artifact multi-prototype. Nếu còn thời gian, so sánh hai phương án ở một trục duy nhất: **tạo ngay một câu từ đoạn đang đọc** và **bắt học viên chọn phạm vi trước khi tạo**. Chọn phương án giảm source mơ hồ/tỷ lệ refusal mà không làm người dùng kẹt; lưu phương án bị loại và feedback.
 
 ## §9. Changelog
 
-| Thời điểm | Đổi gì | Vì sao |
+| Thời điểm | Đổi gì | Vì sao / bằng chứng |
 |---|---|---|
-| Sau CP2 | Chốt user là học viên vừa học xong; AI chỉ tạo quiz có nguồn; chấm điểm rule-based | Giữ lát cắt một user/một quyết định AI và giảm cost-of-error |
-| Sau khi review form | Đưa câu hỏi pain/hành vi lên trước câu hỏi “có muốn quiz” | Tránh câu hỏi dẫn dắt; đáp ứng chuẩn evidence |
-| Sau khi có prototype | Ghi rõ 4 câu đang hardcode, dashboard là mock và scope selector chưa có | Spec phải khớp artifact thật |
-| Sau khi có 24 phản hồi | Chốt mặc định 10 câu, trắc nghiệm, ưu tiên cả bài/chương và màn hình tổng hợp điểm yếu | Lựa chọn lần lượt đạt 41,7%, 58,3%, 62,5%/54,2% và 95,8% |
+| CP2 | Dựng flow đọc bài → quiz → kết quả bằng 4 câu mock | Chứng minh đường đi UI trước khi tích hợp AI |
+| CP3 chuẩn bị | Thêm `generateDiagnosticQuiz`, DeepSeek JSON mode, prompt grounded và validator source/schema | Tạo một AI call thật tại quyết định “sinh hay từ chối sinh quiz” |
+| Khi xây Golden set | Thêm 20 case gồm normal, ambiguous, out-of-scope, adversarial | Bao phủ refusal, grounding và prompt injection thay vì chỉ test happy path |
+| 30/07/2026 | Viết lại thành `new_spec.md`, tách rõ artifact thật, mock và chưa xác minh | UI chưa gọi API; eval/validation chưa có dữ liệu; evidence refs/data pack thiếu trong repo |
 
-## Phụ lục cập nhật CP3 — 2026-07-30
+## Phụ lục — điều kiện để chuyển từ Mock sang Working
 
-- Prototype hiện đã có AI call thật: `POST /api/generate-quiz`.
-- DeepSeek `deepseek-v4-flash` sinh một câu hỏi chẩn đoán JSON có cấu trúc từ đúng đoạn slide được chọn; chấm trắc nghiệm vẫn là rule-based.
-- Khi nguồn thiếu hoặc mơ hồ, API trả `insufficient_source` và không phát hành câu hỏi.
-- Prompt v1: `eval/prompts/generate-quiz-v1.md`.
-- Golden set: 20 ca tại `eval/golden-set.csv`, gồm 15 ca từ chatlog/transcript và 5 ca mơ hồ, ngoài phạm vi hoặc adversarial.
-- Runner: `eval/run-deepseek-eval.mjs`; raw trace ghi vào `eval/traces/run-01/`.
-- Quality bar được giữ nguyên: đạt khi ≥80% case pass, 100% `source_ref` hợp lệ, không có câu sai kiến thức hoặc hai đáp án đúng.
-- Trạng thái lượt chạy 1: chưa chạy vì môi trường chưa có `DEEPSEEK_API_KEY`; không dùng dữ liệu giả thay kết quả AI.
+1. Nối UI tới API và hiển thị đầy đủ trạng thái AI/refusal/confidence/source.
+2. Cung cấp selector và nguồn học liệu có quyền truy cập; không gửi nhiều hơn đoạn tối thiểu cần thiết tới model.
+3. Lưu kết quả quiz/attempt theo phân quyền và tách dashboard mock khỏi dữ liệu thật.
+4. Chạy/ghi eval 20 case, đạt quality bar hoặc lưu nguyên nhân fail và kế hoạch sửa.
+5. Hoàn tất evidence có thể kiểm lại và validation ≥5 người ngoài nhóm.

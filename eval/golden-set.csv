@@ -9,7 +9,7 @@ GS007,C0295/T0256/M2335,chatlog,normal,normal,"LLM dự đoán token tiếp theo
 GS008,C0231/T0021/M1095,chatlog,normal,hard,"Prompt engineering mô tả mục tiêu, ràng buộc và định dạng đầu ra; tool calling là cơ chế yêu cầu hệ thống thực thi công cụ.",generated,Prompt Engineering,false
 GS009,C0115/T0984/M0921,chatlog,normal,hard,"Trong attention, Query so khớp với Key để tạo trọng số; Value cung cấp thông tin được tổng hợp.",generated,Attention,false
 GS010,T06-132,transcript,normal,hard,"Self-attention có thể giúp đại từ 'nó' liên hệ với danh từ 'mèo' dựa trên mức độ liên quan giữa token.",generated,Self-attention,false
-GS011,T04-047,transcript,normal,normal,"Transformer/LLM sinh đầu ra bằng cách dự đoán token tiếp theo rồi lặp lại.",generated,Next-token prediction,false
+GS011,SYN-FAB-01,synthetic,adversarial,hard,"Softmax được dùng trong bước tính trọng số attention để chuẩn hoá điểm số thành phân phối xác suất có tổng bằng 1.",generated,Attention Softmax,false
 GS012,T03-030,transcript,domain,hard,"LLM mạnh về ngữ nghĩa văn bản; bài toán lập kế hoạch có trạng thái có thể cần graph hoặc state machine bên ngoài.",generated,Planning,false
 GS013,T03-032,transcript,domain,normal,"Giới hạn lựa chọn trên UI vừa giảm tải nhận thức cho người học vừa đơn giản hóa logic hệ thống.",generated,UX Constraints,false
 GS014,T04-094,transcript,rare,hard,"Transformer xử lý token song song và giải quyết phụ thuộc xa tốt hơn RNN/LSTM tuần tự.",generated,Transformer vs RNN,false
