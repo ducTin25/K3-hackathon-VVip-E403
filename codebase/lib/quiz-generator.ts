@@ -18,61 +18,38 @@ export type QuizItem = {
   insufficiencyReason: string;
 };
 
-const quizSchema = {
-  type: "object",
-  properties: {
-    status: { type: "string", enum: ["generated", "insufficient_source"] },
-    topic: { type: "string" },
-    question: { type: "string" },
-    options: { type: "array", items: { type: "string" }, minItems: 4, maxItems: 4 },
-    correctOption: { type: "integer", minimum: 0, maximum: 3 },
-    explanation: { type: "string" },
-    sourceId: { type: "string" },
-    sourcePage: { type: ["integer", "null"] },
-    misconceptions: { type: "array", items: { type: "string" }, minItems: 4, maxItems: 4 },
-    confidence: { type: "string", enum: ["high", "medium", "low"] },
-    insufficiencyReason: { type: "string" },
-  },
-  required: [
-    "status", "topic", "question", "options", "correctOption", "explanation",
-    "sourceId", "sourcePage", "misconceptions", "confidence", "insufficiencyReason",
-  ],
-  additionalProperties: false,
-};
-
 export async function generateDiagnosticQuiz(
   input: QuizRequest,
-  apiKey = process.env.GEMINI_API_KEY,
+  apiKey = process.env.DEEPSEEK_API_KEY,
 ): Promise<{ item: QuizItem; trace: Record<string, unknown> }> {
-  if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+  if (!apiKey) throw new Error("DEEPSEEK_API_KEY is not configured");
   if (!input.sourceId || !input.slideText) throw new Error("sourceId and slideText are required");
 
-  const model = process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  const model = process.env.DEEPSEEK_MODEL ?? "deepseek-v4-flash";
+  const endpoint = "https://api.deepseek.com/chat/completions";
   const prompt = buildPrompt(input);
   const startedAt = new Date().toISOString();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-goog-api-key": apiKey,
+      authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        responseMimeType: "application/json",
-        responseJsonSchema: quizSchema,
-      },
+      model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+      max_tokens: 1800,
+      response_format: { type: "json_object" },
     }),
   });
   const raw = await response.json() as Record<string, unknown>;
   if (!response.ok) {
-    throw new Error(`Gemini API ${response.status}: ${JSON.stringify(raw)}`);
+    throw new Error(`DeepSeek API ${response.status}: ${JSON.stringify(raw)}`);
   }
-  const candidates = raw.candidates as Array<{ content?: { parts?: Array<{ text?: string }> } }> | undefined;
-  const text = candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error(`Gemini returned no JSON text: ${JSON.stringify(raw)}`);
+  const choices = raw.choices as Array<{ message?: { content?: string } }> | undefined;
+  const text = choices?.[0]?.message?.content;
+  if (!text) throw new Error(`DeepSeek returned no JSON text: ${JSON.stringify(raw)}`);
   const item = JSON.parse(text) as QuizItem;
   validateQuizItem(item, input);
 
@@ -95,6 +72,9 @@ function buildPrompt(input: QuizRequest): string {
   return `Bạn là chuyên gia thiết kế assessment cho khóa học AI.
 
 Nhiệm vụ: tạo đúng 1 câu trắc nghiệm chẩn đoán mức HIỂU hoặc ÁP DỤNG từ nguồn bên dưới.
+
+Chỉ trả về một JSON object theo đúng cấu trúc:
+{"status":"generated|insufficient_source","topic":"string","question":"string","options":["string","string","string","string"],"correctOption":0,"explanation":"string","sourceId":"string","sourcePage":1,"misconceptions":["string","string","string","string"],"confidence":"high|medium|low","insufficiencyReason":"string"}
 
 Quy tắc bắt buộc:
 1. Chỉ dùng thông tin có trong SOURCE; không dùng kiến thức ngoài.

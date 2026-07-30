@@ -3,10 +3,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const key = process.env.GEMINI_API_KEY;
-const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+const key = process.env.DEEPSEEK_API_KEY;
+const model = process.env.DEEPSEEK_MODEL || "deepseek-v4-flash";
 if (!key) {
-  console.error("Thiếu GEMINI_API_KEY. PowerShell: $env:GEMINI_API_KEY='...'; npm run eval:quiz");
+  console.error("Thiếu DEEPSEEK_API_KEY. PowerShell: $env:DEEPSEEK_API_KEY='...'; npm run eval:quiz");
   process.exit(2);
 }
 const schema = {
@@ -55,13 +55,13 @@ ${test.slide_input}`;
   const startedAt = new Date().toISOString();
   let output = null, error = "", raw = null;
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, responseMimeType: "application/json", responseJsonSchema: schema } })
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({ model, messages: [{ role: "user", content: `${prompt}\nChỉ trả về JSON object khớp cấu trúc: ${JSON.stringify(schema)}` }], temperature: 0.2, max_tokens: 1800, response_format: { type: "json_object" } })
     });
     raw = await response.json();
     if (!response.ok) throw new Error(raw?.error?.message || `HTTP ${response.status}`);
-    output = JSON.parse(raw.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
+    output = JSON.parse(raw.choices?.[0]?.message?.content || "{}");
   } catch (cause) { error = cause instanceof Error ? cause.message : String(cause); }
   const statusMatch = output?.status === test.expected_status;
   const sourceMatch = output?.sourceId === test.source_ref && output?.sourcePage === 1;

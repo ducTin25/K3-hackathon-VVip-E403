@@ -1,8 +1,8 @@
 # generate-quiz-v1
 
-Model mặc định: `gemini-3.6-flash`  
+Model mặc định: `deepseek-v4-flash`  
 Temperature: `0.2`  
-Output: JSON Schema
+Output: DeepSeek JSON Output (`response_format: json_object`) và kiểm tra schema tại ứng dụng
 
 ## Quyết định AI trung tâm
 

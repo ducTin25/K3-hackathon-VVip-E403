@@ -256,10 +256,10 @@ Multi-prototype: `[TODO nếu thực hiện]`.
 ## Phụ lục cập nhật CP3 — 2026-07-30
 
 - Prototype hiện đã có AI call thật: `POST /api/generate-quiz`.
-- Gemini sinh một câu hỏi chẩn đoán JSON có cấu trúc từ đúng đoạn slide được chọn; chấm trắc nghiệm vẫn là rule-based.
+- DeepSeek `deepseek-v4-flash` sinh một câu hỏi chẩn đoán JSON có cấu trúc từ đúng đoạn slide được chọn; chấm trắc nghiệm vẫn là rule-based.
 - Khi nguồn thiếu hoặc mơ hồ, API trả `insufficient_source` và không phát hành câu hỏi.
 - Prompt v1: `eval/prompts/generate-quiz-v1.md`.
 - Golden set: 20 ca tại `eval/golden-set.csv`, gồm 15 ca từ chatlog/transcript và 5 ca mơ hồ, ngoài phạm vi hoặc adversarial.
-- Runner: `eval/run-gemini-eval.mjs`; raw trace ghi vào `eval/traces/run-01/`.
+- Runner: `eval/run-deepseek-eval.mjs`; raw trace ghi vào `eval/traces/run-01/`.
 - Quality bar được giữ nguyên: đạt khi ≥80% case pass, 100% `source_ref` hợp lệ, không có câu sai kiến thức hoặc hai đáp án đúng.
-- Trạng thái lượt chạy 1: chưa chạy vì môi trường chưa có `GEMINI_API_KEY`; không dùng dữ liệu giả thay kết quả AI.
+- Trạng thái lượt chạy 1: chưa chạy vì môi trường chưa có `DEEPSEEK_API_KEY`; không dùng dữ liệu giả thay kết quả AI.

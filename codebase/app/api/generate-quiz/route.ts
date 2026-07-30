@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return Response.json({ ok: true, ...result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    const status = message.includes("GEMINI_API_KEY") ? 503 : 400;
+    const status = message.includes("DEEPSEEK_API_KEY") ? 503 : 400;
     return Response.json({ ok: false, error: message }, { status });
   }
 }
