@@ -11,6 +11,7 @@
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "eval:quiz": "node --env-file=.env ../eval/run-deepseek-eval.mjs",
+    "slide:extract": "node scripts/pdf-to-json.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },

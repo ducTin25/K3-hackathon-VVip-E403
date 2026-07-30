@@ -43,3 +43,6 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# Extracted slide content (nội dung slide thật) — giống data pack, không commit
+/scripts/slide-data/
