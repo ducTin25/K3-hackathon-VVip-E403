@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PDF → JSON slide chunks (công cụ độc lập)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; max-width: 860px; margin: 32px auto; padding: 0 16px; line-height: 1.5; }
+  h1 { font-size: 1.4rem; }
+  .note { background: color-mix(in srgb, canvastext 6%, canvas); border-radius: 8px; padding: 12px 16px; font-size: 0.92rem; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+  fieldset { border: 1px solid color-mix(in srgb, canvastext 20%, canvas); border-radius: 8px; padding: 10px 14px; }
+  input[type="password"], input[type="text"] { padding: 6px 8px; border-radius: 6px; border: 1px solid color-mix(in srgb, canvastext 30%, canvas); background: canvas; color: canvastext; min-width: 320px; }
+  button { padding: 8px 16px; border-radius: 6px; border: 1px solid color-mix(in srgb, canvastext 30%, canvas); background: canvas; color: canvastext; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.primary { background: #2563eb; color: white; border-color: #2563eb; }
+  #log { background: color-mix(in srgb, canvastext 6%, canvas); border-radius: 8px; padding: 12px; font-size: 0.85rem; max-height: 260px; overflow-y: auto; white-space: pre-wrap; }
+  #preview { background: color-mix(in srgb, canvastext 6%, canvas); border-radius: 8px; padding: 12px; font-size: 0.8rem; max-height: 320px; overflow: auto; white-space: pre-wrap; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; }
+  .pill.ok { background: #16a34a33; color: #16a34a; }
+  .pill.warn { background: #f59e0b33; color: #b45309; }
+</style>
+</head>
+<body>
+
+<h1>PDF slide → JSON chunks (text + chương + ảnh/diagram)</h1>
+<p class="note">
+  Công cụ độc lập chạy hoàn toàn trong trình duyệt — không gọi backend, không đụng <code>app/</code> hay route AI nào trong <code>codebase/</code>.
+  Text + phát hiện chương: hoàn toàn deterministic, không AI. Trang có ảnh/diagram (tự phát hiện bằng cấu trúc PDF, không đoán): chọn xử lý bằng OCR (chỉ đọc chữ) hoặc Gemini vision (hiểu cả nội dung diagram).
+  API key Gemini chỉ dùng trong trình duyệt của bạn, gọi thẳng tới Google, không gửi cho bất kỳ server nào của mình.
+</p>
+
+<div class="row">
+  <input type="file" id="file" accept="application/pdf" />
+</div>
+<div class="row">
+  <fieldset>
+    <legend>Xử lý trang có ảnh/diagram</legend>
+    <label><input type="radio" name="imgMode" value="none" /> Không xử lý (giữ nguyên text đã có)</label><br>
+    <label><input type="radio" name="imgMode" value="ocr" checked /> OCR (Tesseract.js) — chỉ đọc chữ, không hiểu diagram</label><br>
+    <label><input type="radio" name="imgMode" value="gemini" /> Gemini vision — hiểu cả nội dung diagram/biểu đồ</label>
+    <div class="row" id="geminiKeyRow" style="display:none">
+      <input type="password" id="geminiKey" placeholder="Dán API key Gemini vào đây (không lưu, chỉ dùng trong phiên này)" />
+    </div>
+  </fieldset>
+</div>
+<div class="row">
+  <button id="run" class="primary">Trích xuất</button>
+  <button id="download" disabled>Tải JSON</button>
+  <span id="status"></span>
+</div>
+
+<div id="log"></div>
+<h3>Xem trước JSON</h3>
+<div id="preview">(chưa có kết quả)</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.5/tesseract.min.js"></script>
+<script type="module">
+  import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/pdf.mjs";
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/pdf.worker.mjs";
+  const { OPS } = pdfjsLib;
+  const IMAGE_OPS = new Set([OPS.paintImageXObject, OPS.paintInlineImageXObject, OPS.paintImageMaskXObject]);
+
+  const fileInput = document.getElementById("file");
+  const runBtn = document.getElementById("run");
+  const downloadBtn = document.getElementById("download");
+  const logEl = document.getElementById("log");
+  const previewEl = document.getElementById("preview");
+  const statusEl = document.getElementById("status");
+  const geminiKeyRow = document.getElementById("geminiKeyRow");
+  const geminiKeyEl = document.getElementById("geminiKey");
+
+  document.querySelectorAll('input[name="imgMode"]').forEach((r) =>
+    r.addEventListener("change", () => { geminiKeyRow.style.display = r.value === "gemini" && r.checked ? "flex" : geminiKeyRow.style.display; if (r.checked) geminiKeyRow.style.display = r.value === "gemini" ? "flex" : "none"; })
+  );
+
+  let lastResult = null;
+
+  function log(line) {
+    logEl.textContent += line + "\n";
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  async function pageHasEmbeddedImage(page) {
+    const opList = await page.getOperatorList();
+    return opList.fnArray.some((fn) => IMAGE_OPS.has(fn));
+  }
+
+  async function renderPageCanvas(page, scale) {
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+    return canvas;
+  }
+
+  async function ocrCanvas(canvas, worker) {
+    const { data } = await worker.recognize(canvas);
+    return (data.text || "").trim();
+  }
+
+  function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  async function describeWithGemini(canvas, pageText, apiKey, attempt = 1) {
+    const dataUrl = canvas.toDataURL("image/png");
+    const base64 = dataUrl.split(",")[1];
+    const body = {
+      contents: [{
+        parts: [
+          { text: `Đây là 1 trang slide bài giảng (tiếng Việt). Text đã trích được từ trang (có thể thiếu phần trong hình): """${pageText || "(không có)"}"""
+Nhiệm vụ: mô tả ĐẦY ĐỦ nội dung trang này bằng tiếng Việt, ưu tiên phần hình vẽ/biểu đồ mà text ở trên chưa có — nói rõ các thành phần, mối quan hệ giữa chúng (trục nào, so sánh gì, cái nào hơn cái nào). CHỈ mô tả những gì thấy trong ảnh, TUYỆT ĐỐI không suy đoán hay thêm kiến thức ngoài ảnh. Nếu ảnh không có nội dung học thuật đáng kể (chỉ là logo/trang trí), trả đúng chuỗi "KHONG_CO_NOI_DUNG".` },
+          { inline_data: { mime_type: "image/png", data: base64 } },
+        ],
+      }],
+      generationConfig: { temperature: 0.1 },
+    };
+    const res = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+      { method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": apiKey }, body: JSON.stringify(body) },
+    );
+    if (res.status === 429 && attempt <= 4) {
+      const wait = 15000 * attempt; // 15s, 30s, 45s, 60s — free tier tính theo phút, phải nghỉ đủ lâu
+      log(`  Bị rate limit (429), đợi ${wait / 1000}s rồi thử lại (lần ${attempt}/4)...`);
+      await sleep(wait);
+      return describeWithGemini(canvas, pageText, apiKey, attempt + 1);
+    }
+    if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+    const json = await res.json();
+    return (json.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "").trim();
+  }
+
+  const CHAPTER_PATTERNS = [
+    (line, next) => { const m = line.match(/^(\d{2})\s+(.{3,60}?)\s*$/); return m ? { chapterNo: m[1], title: m[2].trim() } : null; },
+    (line, next) => { const compact = line.replace(/\s+/g, ""); const m = compact.match(/^SECTION(\d{1,2})/i); return m && next ? { chapterNo: m[1].padStart(2, "0"), title: next.trim().slice(0, 60) } : null; },
+  ];
+
+  function detectChapters(pages) {
+    const markers = [];
+    for (const p of pages) {
+      const lines = p.content.split("\n");
+      let found = null;
+      for (let li = 0; li < Math.min(lines.length, 3) && !found; li++) {
+        for (const pattern of CHAPTER_PATTERNS) {
+          const m = pattern(lines[li] || "", lines[li + 1]);
+          if (m) { found = m; break; }
+        }
+      }
+      if (found) markers.push({ chapterNo: found.chapterNo, title: found.title, startPage: p.page });
+    }
+    return markers.map((m, i) => {
+      const endPage = i + 1 < markers.length ? markers[i + 1].startPage - 1 : pages[pages.length - 1].page;
+      const chapterPages = pages.filter((p) => p.page >= m.startPage && p.page <= endPage);
+      return {
+        chapterId: `C${m.chapterNo}`, title: m.title, startPage: m.startPage, endPage,
+        pageIds: chapterPages.map((p) => p.id),
+        content: chapterPages.map((p) => p.content).join("\n\n"),
+        hasVisionContent: chapterPages.some((p) => p.contentSource === "text-layer+vision"),
+      };
+    });
+  }
+
+  runBtn.addEventListener("click", async () => {
+    const file = fileInput.files[0];
+    if (!file) { alert("Chọn 1 file PDF trước đã."); return; }
+    const imgMode = document.querySelector('input[name="imgMode"]:checked').value;
+    const geminiApiKey = geminiKeyEl.value.trim();
+    if (imgMode === "gemini" && !geminiApiKey) { alert("Nhập API key Gemini trước, hoặc chọn chế độ khác."); return; }
+
+    runBtn.disabled = true;
+    downloadBtn.disabled = true;
+    logEl.textContent = "";
+    previewEl.textContent = "";
+    statusEl.textContent = "Đang xử lý...";
+
+    let ocrWorker = null;
+    if (imgMode === "ocr") {
+      log("Đang tải model OCR (tiếng Việt)...");
+      ocrWorker = await Tesseract.createWorker("vie");
+      log("OCR sẵn sàng.");
+    }
+
+    try {
+      const buf = await file.arrayBuffer();
+      const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+      const pages = [];
+
+      for (let i = 1; i <= doc.numPages; i++) {
+        const page = await doc.getPage(i);
+        const textContent = await page.getTextContent();
+
+        let content = "";
+        for (const item of textContent.items) {
+          content += item.str;
+          content += item.hasEOL ? "\n" : " ";
+        }
+        content = content.replace(/[ \t]+/g, " ").replace(/\n{2,}/g, "\n").trim();
+
+        const hasEmbeddedImage = await pageHasEmbeddedImage(page);
+        let contentSource = content.length > 0 ? "text-layer" : "empty";
+
+        if (imgMode === "ocr" && content.length < 20 && ocrWorker) {
+          log(`Trang ${i}: thiếu text layer → OCR...`);
+          const canvas = await renderPageCanvas(page, 2);
+          content = await ocrCanvas(canvas, ocrWorker);
+          contentSource = "ocr";
+        } else if (imgMode === "gemini" && hasEmbeddedImage) {
+          log(`Trang ${i}: có ảnh/diagram → hỏi Gemini...`);
+          try {
+            await sleep(4000); // free tier tính request/phút — nghỉ giữa mỗi trang để không bị 429 ngay từ đầu
+            const canvas = await renderPageCanvas(page, 1.6);
+            const desc = await describeWithGemini(canvas, content, geminiApiKey);
+            if (desc && desc !== "KHONG_CO_NOI_DUNG") {
+              content = content ? `${content}\n\n[Mô tả hình/diagram - AI vision]:\n${desc}` : desc;
+              contentSource = "text-layer+vision";
+            }
+          } catch (err) {
+            log(`  Lỗi Gemini trang ${i}: ${err.message} — giữ nguyên text gốc.`);
+            contentSource = content.length > 0 ? "text-layer-only-vision-failed" : "empty-vision-failed";
+          }
+        } else {
+          log(`Trang ${i}: OK (${content.length} ký tự${hasEmbeddedImage ? ", có ảnh nhưng chế độ hiện tại không xử lý" : ""})`);
+        }
+
+        pages.push({
+          id: `P${String(i).padStart(2, "0")}`,
+          page: i,
+          content,
+          charCount: content.length,
+          hasTextLayer: content.length > 0,
+          hasEmbeddedImage,
+          contentSource,
+        });
+      }
+
+      if (ocrWorker) await ocrWorker.terminate();
+
+      const chapters = detectChapters(pages);
+
+      lastResult = {
+        source: file.name,
+        pageCount: doc.numPages,
+        extractedAt: new Date().toISOString(),
+        visionEnabled: imgMode === "gemini",
+        chapterDetection: chapters.length > 0 ? "marker-regex" : "none",
+        chapters,
+        pages,
+      };
+
+      const emptyPages = pages.filter((p) => p.charCount === 0).length;
+      const visionDone = pages.filter((p) => p.contentSource === "text-layer+vision").length;
+      statusEl.innerHTML = `<span class="pill ${emptyPages ? "warn" : "ok"}">${doc.numPages} trang, ${emptyPages} trang rỗng, ${visionDone} trang đọc bằng Gemini, ${chapters.length} chương</span>`;
+      previewEl.textContent = JSON.stringify(lastResult, null, 2).slice(0, 4000) + (JSON.stringify(lastResult).length > 4000 ? "\n... (còn nữa, xem đủ trong file tải về)" : "");
+      downloadBtn.disabled = false;
+      log("Xong.");
+    } catch (err) {
+      log("Lỗi: " + err.message);
+      statusEl.textContent = "Lỗi — xem log.";
+    } finally {
+      runBtn.disabled = false;
+    }
+  });
+
+  downloadBtn.addEventListener("click", () => {
+    if (!lastResult) return;
+    const blob = new Blob([JSON.stringify(lastResult, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = lastResult.source.replace(/\.pdf$/i, "") + ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+</script>
+</body>
+</html>
