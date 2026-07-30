@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-**Quyết định: GO về desirability của giải pháp**, dựa trên 24 phản hồi khảo sát. Evidence về tần suất và tổn thất của pain vẫn cần bổ sung; không được diễn giải `23/24 muốn quiz` thành `23/24 đang gặp pain`.
+**Quyết định: GO để tiếp tục build concept**, dựa trên 24 phản hồi khảo sát. Đây không phải kết quả chạy sản phẩm. Evidence về tần suất và tổn thất của pain vẫn cần bổ sung; không được diễn giải `23/24 muốn quiz` thành `23/24 đang gặp pain`.
 
 ## Ba ứng viên
 

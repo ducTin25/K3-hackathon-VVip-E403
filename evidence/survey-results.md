@@ -1,5 +1,7 @@
 # Kết quả khảo sát nhu cầu tạo quiz từ slide bài giảng
 
+> Đây là khảo sát **trước khi người dùng chạy prototype**. Kết quả chỉ đo mức quan tâm tới ý tưởng/thiết kế, không phải đánh giá chất lượng sản phẩm.
+
 ## 1. Nguồn và phạm vi dữ liệu
 
 - Tổng phản hồi hiển thị trên Google Forms: **24**.
@@ -106,7 +108,7 @@ Khảo sát **đạt cổng desirability của giải pháp**:
 
 Quyết định:
 
-> **GO với MVP quiz trắc nghiệm 10 câu, tạo từ cả bài hoặc một chương, có giải thích, nguồn và tổng hợp điểm yếu. Giữ lựa chọn điểm kiến thức nếu không làm chậm critical path.**
+> **GO để tiếp tục build MVP** quiz trắc nghiệm 10 câu, tạo từ cả bài hoặc một chương, có giải thích, nguồn và tổng hợp điểm yếu. Quyết định này không có nghĩa sản phẩm đã được kiểm chứng.
 
 ## 4. Giới hạn bằng chứng
 

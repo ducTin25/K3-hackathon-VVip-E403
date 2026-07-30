@@ -14,6 +14,8 @@
 | Bảng impact | `evidence/impact-analysis.md` |
 | Spec phần Product/Evidence/Design | `spec.md` §1, §2, §4 |
 
+> “Evidence” đã hoàn thành ở đây là **problem evidence trước sản phẩm**. Chưa có bằng chứng AI chạy đúng hoặc user dùng sản phẩm thành công.
+
 ### Chưa hoàn thành
 
 | Mức ưu tiên | Hạng mục còn thiếu |
@@ -23,6 +25,14 @@
 | **P1 - chặn CP4** | Spec §3, §5, §6, §7, §8, §9; quality bar chính thức |
 | **P1 - chặn CP4** | Raw survey log/ẩn danh, xác nhận người ngoài nhóm, ≥3 willing users |
 | **P1 - chặn CP5** | Validation ≥5 người, changelog và regression |
+
+Hiện tại:
+
+- `eval/` chưa tồn tại.
+- `validation/` chưa tồn tại.
+- Prototype vẫn dùng 4 câu hardcode.
+- Chưa có API tạo quiz.
+- Vì vậy chưa được tuyên bố sản phẩm đã chạy hoặc đã được kiểm chứng.
 | **P1 - chặn CP5** | Slide 6 trang, demo script và dry run |
 | **P2 - nộp cuối** | README nhóm, reflection 5 người, backup demo, chuẩn hóa `prototype/`/`codebase/` |
 

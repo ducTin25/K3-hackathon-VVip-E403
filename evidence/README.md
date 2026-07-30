@@ -1,4 +1,14 @@
-# Evidence - phần phụ trách TV1
+# Problem evidence trước khi chạy sản phẩm - phần TV1
+
+> Thư mục này chứng minh **vấn đề/cơ hội có tồn tại** và người dùng có quan tâm tới ý tưởng. Đây **không phải** bằng chứng prototype hoạt động tốt.
+
+## Phân biệt ba loại dữ liệu
+
+| Loại | Câu hỏi trả lời | Trạng thái |
+|---|---|---|
+| Problem evidence | User có nhu cầu/pain không? | Đã có survey + mining, còn giới hạn |
+| Product evaluation | AI tạo quiz có đúng và có nguồn không? | **Chưa có**; cần AI call + `eval/` |
+| User validation | User dùng prototype có hiểu, tin và muốn dùng không? | **Chưa có**; cần ≥5 người thử + `validation/` |
 
 ## Trạng thái
 

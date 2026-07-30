@@ -29,6 +29,8 @@ Workflow hiện tại:
 
 ### Evidence
 
+> Evidence trong §1 là bằng chứng trước khi build về problem/desirability. Prototype chưa có AI call thật, chưa có `eval/` và chưa được user validation.
+
 #### Đường A - khảo sát desirability
 
 - Tổng phản hồi: **24**.
