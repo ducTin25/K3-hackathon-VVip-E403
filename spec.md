@@ -1,4 +1,4 @@
-# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm [ĐIỀN NHÓM] · Zone [ĐIỀN ZONE]
+w# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm VVip · Zone 
 
 Hướng: [x] A - VLearn  [ ] B - Trợ lý Học viên  [ ] C - Làn mở  
 Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
@@ -28,8 +28,6 @@ Workflow hiện tại:
 > Sau khi đọc bài giảng, học viên chưa có cách nhanh để tự kiểm tra phần nào đã hiểu và phần nào còn hổng; họ chủ yếu đọc lại, hỏi giải thích hoặc xin tóm tắt, nên dễ nhầm cảm giác “đã xem” với “đã nắm được kiến thức”.
 
 ### Evidence
-
-> Evidence trong §1 là bằng chứng trước khi build về problem/desirability. Prototype chưa có AI call thật, chưa có `eval/` và chưa được user validation.
 
 #### Đường A - khảo sát desirability
 
