@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "1.0",
+  "course": {
+    "courseId": "AI-THUC-CHIEN",
+    "courseTitle": "AI Thực Chiến"
+  },
+  "lesson": {
+    "lessonId": "DAY03",
+    "lessonTitle": "Từ Chatbot đến Agentic Agent",
+    "totalSlides": 50,
+    "language": "vi",
+    "status": "approved"
+  },
+  "chapters": [
+    {
+      "chapterId": "DAY03-CH-01",
+      "order": 1,
+      "title": "Nền tảng AI Agent",
+      "description": "Phân biệt chatbot, AI Agent và vòng lặp hoạt động"
+    },
+    {
+      "chapterId": "DAY03-CH-02",
+      "order": 2,
+      "title": "ReAct và công cụ",
+      "description": "Thought, Action, Observation và cách gọi công cụ"
+    },
+    {
+      "chapterId": "DAY03-CH-03",
+      "order": 3,
+      "title": "Quản lý ngữ cảnh",
+      "description": "Chọn lọc và nén thông tin trong context"
+    }
+  ],
+  "slides": [
+    {
+      "slideId": "DAY03-S008",
+      "order": 8,
+      "displaySlideNumber": "8",
+      "chapterId": "DAY03-CH-01",
+      "title": "AI Agent khác Chatbot như thế nào?",
+      "contentType": "concept",
+      "sourceText": "AI Agent có khả năng lập kế hoạch, hành động thông qua công cụ và quan sát kết quả. Chatbot thông thường chủ yếu sinh phản hồi cho yêu cầu hiện tại.",
+      "visualDescription": "Bảng so sánh Chatbot và AI Agent.",
+      "summary": "AI Agent có thể lập kế hoạch và hành động, còn chatbot chủ yếu sinh phản hồi.",
+      "keyPoints": [
+        "AI Agent có khả năng lập kế hoạch",
+        "AI Agent có thể sử dụng công cụ",
+        "AI Agent quan sát kết quả hành động"
+      ],
+      "learningObjectives": ["Phân biệt được AI Agent và chatbot"],
+      "knowledgePointIds": ["DAY03-KP-AGENT-VS-CHATBOT"],
+      "tags": ["AI Agent", "Chatbot"],
+      "quizEligible": true,
+      "reviewStatus": "approved"
+    },
+    {
+      "slideId": "DAY03-S012",
+      "order": 12,
+      "displaySlideNumber": "12",
+      "chapterId": "DAY03-CH-01",
+      "title": "Chu trình của một AI Agent",
+      "contentType": "process",
+      "sourceText": "Một AI Agent nhận mục tiêu, lập kế hoạch, thực hiện hành động, quan sát kết quả rồi điều chỉnh kế hoạch. Chu trình tiếp tục cho đến khi hoàn thành mục tiêu hoặc cần dừng an toàn.",
+      "visualDescription": "Chu trình Goal, Plan, Act, Observe và Adapt.",
+      "summary": "Agent điều chỉnh kế hoạch dựa trên kết quả quan sát được.",
+      "keyPoints": [
+        "Mục tiêu định hướng kế hoạch",
+        "Quan sát cung cấp tín hiệu để điều chỉnh",
+        "Agent có thể dừng khi không thể tiếp tục an toàn"
+      ],
+      "learningObjectives": ["Giải thích được chu trình hoạt động của AI Agent"],
+      "knowledgePointIds": ["DAY03-KP-AGENT-CYCLE"],
+      "tags": ["AI Agent", "Planning", "Observation"],
+      "quizEligible": true,
+      "reviewStatus": "approved"
+    },
+    {
+      "slideId": "DAY03-S023",
+      "order": 23,
+      "displaySlideNumber": "23",
+      "chapterId": "DAY03-CH-02",
+      "title": "Thought → Action → Observation",
+      "contentType": "process",
+      "sourceText": "ReAct gồm vòng lặp Thought, Action và Observation. Sau khi thực hiện Action, agent nhận Observation và sử dụng kết quả này để quyết định bước tiếp theo thay vì trả lời ngay.",
+      "visualDescription": "Sơ đồ vòng lặp Thought, Action, Observation rồi quay lại Thought.",
+      "summary": "Trong ReAct, agent quan sát kết quả hành động trước khi quyết định bước tiếp.",
+      "keyPoints": [
+        "Thought xác định hành động tiếp theo",
+        "Action có thể là lời gọi công cụ",
+        "Observation chứa kết quả của hành động"
+      ],
+      "learningObjectives": [
+        "Giải thích được vòng lặp ReAct",
+        "Xác định được bước sau một Action"
+      ],
+      "knowledgePointIds": ["DAY03-KP-REACT-LOOP", "DAY03-KP-OBSERVATION"],
+      "tags": ["ReAct", "Thought", "Action", "Observation"],
+      "quizEligible": true,
+      "reviewStatus": "approved"
+    },
+    {
+      "slideId": "DAY03-S031",
+      "order": 31,
+      "displaySlideNumber": "31",
+      "chapterId": "DAY03-CH-02",
+      "title": "Tool Calling",
+      "contentType": "concept",
+      "sourceText": "Tool Calling cho phép mô hình yêu cầu hệ thống gọi một công cụ bằng tên và tham số có cấu trúc. Mô hình không tự chạy công cụ; ứng dụng thực thi và gửi kết quả trở lại làm Observation.",
+      "visualDescription": "Mô hình gửi yêu cầu có cấu trúc đến ứng dụng, ứng dụng gọi công cụ rồi trả kết quả.",
+      "summary": "Mô hình yêu cầu gọi công cụ, còn ứng dụng chịu trách nhiệm thực thi.",
+      "keyPoints": [
+        "Lời gọi công cụ có tên và tham số",
+        "Ứng dụng thực thi công cụ",
+        "Kết quả công cụ trở thành Observation"
+      ],
+      "learningObjectives": ["Phân biệt vai trò của mô hình và ứng dụng khi gọi công cụ"],
+      "knowledgePointIds": ["DAY03-KP-TOOL-CALLING"],
+      "tags": ["Tool Calling", "Function Calling"],
+      "quizEligible": true,
+      "reviewStatus": "approved"
+    },
+    {
+      "slideId": "DAY03-S038",
+      "order": 38,
+      "displaySlideNumber": "38",
+      "chapterId": "DAY03-CH-02",
+      "title": "Function Calling có cấu trúc",
+      "contentType": "concept",
+      "sourceText": "Function Calling mô tả tên hàm, ý nghĩa và schema tham số. Đầu ra có cấu trúc giúp ứng dụng giảm việc phân tích action bằng biểu thức chính quy, nhưng không bảo đảm mô hình luôn chọn đúng công cụ.",
+      "visualDescription": "Một JSON schema mô tả tên hàm và các tham số.",
+      "summary": "Schema làm lời gọi hàm dễ kiểm tra hơn nhưng không loại bỏ lỗi lựa chọn công cụ.",
+      "keyPoints": [
+        "Schema chuẩn hóa tham số",
+        "Ứng dụng vẫn phải kiểm tra lời gọi",
+        "Function Calling không loại bỏ mọi hallucination"
+      ],
+      "learningObjectives": ["Giải thích lợi ích và giới hạn của Function Calling"],
+      "knowledgePointIds": ["DAY03-KP-FUNCTION-CALLING"],
+      "tags": ["Function Calling", "Schema"],
+      "quizEligible": true,
+      "reviewStatus": "approved"
+    },
+    {
+      "slideId": "DAY03-S045",
+      "order": 45,
+      "displaySlideNumber": "45",
+      "chapterId": "DAY03-CH-03",
+      "title": "Context Management",
+      "contentType": "concept",
+      "sourceText": "Context management ưu tiên thông tin liên quan và chất lượng cao; context dài hơn không mặc định cho kết quả tốt hơn. Select chọn phần cần thiết, còn Compress tóm tắt lịch sử hoặc tool output để giữ tín hiệu chính và giảm token.",
+      "visualDescription": "So sánh chiến lược Select và Compress.",
+      "summary": "Chọn lọc hoặc nén context giúp giữ thông tin chính thay vì đưa mọi thứ vào model.",
+      "keyPoints": [
+        "Độ liên quan quan trọng hơn độ dài",
+        "Select chọn thông tin cần thiết",
+        "Compress giữ tín hiệu chính với ít token hơn"
+      ],
+      "learningObjectives": ["Áp dụng Select hoặc Compress vào tình huống phù hợp"],
+      "knowledgePointIds": ["DAY03-KP-CONTEXT-SELECT", "DAY03-KP-CONTEXT-COMPRESS"],
+      "tags": ["Context", "Select", "Compress"],
+      "quizEligible": true,
+      "reviewStatus": "approved"
+    }
+  ],
+  "knowledgePoints": [
+    {
+      "knowledgePointId": "DAY03-KP-AGENT-VS-CHATBOT",
+      "chapterId": "DAY03-CH-01",
+      "title": "AI Agent và Chatbot",
+      "slideIds": ["DAY03-S008"]
+    },
+    {
+      "knowledgePointId": "DAY03-KP-AGENT-CYCLE",
+      "chapterId": "DAY03-CH-01",
+      "title": "Chu trình AI Agent",
+      "slideIds": ["DAY03-S012"]
+    },
+    {
+      "knowledgePointId": "DAY03-KP-REACT-LOOP",
+      "chapterId": "DAY03-CH-02",
+      "title": "Vòng lặp ReAct",
+      "slideIds": ["DAY03-S023"]
+    },
+    {
+      "knowledgePointId": "DAY03-KP-OBSERVATION",
+      "chapterId": "DAY03-CH-02",
+      "title": "Observation",
+      "slideIds": ["DAY03-S023"]
+    },
+    {
+      "knowledgePointId": "DAY03-KP-TOOL-CALLING",
+      "chapterId": "DAY03-CH-02",
+      "title": "Tool Calling",
+      "slideIds": ["DAY03-S031"]
+    },
+    {
+      "knowledgePointId": "DAY03-KP-FUNCTION-CALLING",
+      "chapterId": "DAY03-CH-02",
+      "title": "Function Calling",
+      "slideIds": ["DAY03-S038"]
+    },
+    {
+      "knowledgePointId": "DAY03-KP-CONTEXT-SELECT",
+      "chapterId": "DAY03-CH-03",
+      "title": "Chọn lọc context",
+      "slideIds": ["DAY03-S045"]
+    },
+    {
+      "knowledgePointId": "DAY03-KP-CONTEXT-COMPRESS",
+      "chapterId": "DAY03-CH-03",
+      "title": "Nén context",
+      "slideIds": ["DAY03-S045"]
+    }
+  ]
+}
