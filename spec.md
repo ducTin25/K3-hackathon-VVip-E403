@@ -1,4 +1,4 @@
-w# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm [ĐIỀN NHÓM] · Zone [ĐIỀN ZONE]
+# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm VVip · Zone [ĐIỀN ZONE]
 
 Hướng: [x] A - VLearn  [ ] B - Trợ lý Học viên  [ ] C - Làn mở  
 Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
@@ -262,4 +262,4 @@ Multi-prototype: `[TODO nếu thực hiện]`.
 - Golden set: 20 ca tại `eval/golden-set.csv`, gồm 15 ca từ chatlog/transcript và 5 ca mơ hồ, ngoài phạm vi hoặc adversarial.
 - Runner: `eval/run-deepseek-eval.mjs`; raw trace ghi vào `eval/traces/run-01/`.
 - Quality bar được giữ nguyên: đạt khi ≥80% case pass, 100% `source_ref` hợp lệ, không có câu sai kiến thức hoặc hai đáp án đúng.
-- Trạng thái lượt chạy 1: chưa chạy vì môi trường chưa có `DEEPSEEK_API_KEY`; không dùng dữ liệu giả thay kết quả AI.
+- Kết quả lượt chạy hoàn chỉnh đầu tiên với DeepSeek: auto-pass 19/20 (95%), vượt quality bar 80%; ca `GS016` fail vì vẫn tạo câu hỏi từ một nhận định quá chung chung. Human grounding review còn chờ nhóm xác nhận.

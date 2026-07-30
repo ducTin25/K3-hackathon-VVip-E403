@@ -1,0 +1,9 @@
+turn_id,message_id,signal,short_excerpt,source_note
+T0849,M0003,quiz_request,"Tạo quiz để tôi hiểu rõ và ôn lại toàn bộ slide này","Trích ngắn từ chatlog ẩn danh"
+T0257,M0872,quiz_request,"Tóm tắt những ý chính để tôi có thể làm quiz Kahoot cuối giờ","Trích ngắn từ chatlog ẩn danh"
+T0907,M0306,quiz_request,"Chủ đề của quiz là những nội dung liên quan đến bài giảng","Trích ngắn từ chatlog ẩn danh"
+T0649,M1149,summary_need,"Tóm tắt nội dung chính trong slide này","Trích ngắn từ chatlog ẩn danh"
+T0699,M0332,summary_need,"Tóm tắt toàn bộ slide, sau đó đưa ra các ý chính","Trích ngắn từ chatlog ẩn danh"
+T0415,M1830,summary_need,"Tóm tắt nội dung, đưa ra keyword cần nhớ","Trích ngắn từ chatlog ẩn danh"
+T1019,M1189,summary_need,"Tổng hợp toàn bộ những kiến thức chính trong bài này","Trích ngắn từ chatlog ẩn danh"
+T0959,M1109,explain_need,"Giải thích 4 chiến lược","Trích ngắn từ chatlog ẩn danh"
