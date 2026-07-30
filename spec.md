@@ -1,4 +1,4 @@
-w# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm [ĐIỀN NHÓM] · Zone [ĐIỀN ZONE]
+# AI SPEC - Kiểm tra mức độ hiểu từ slide · Nhóm VVip · Zone [ĐIỀN ZONE]
 
 Hướng: [x] A - VLearn  [ ] B - Trợ lý Học viên  [ ] C - Làn mở  
 Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
