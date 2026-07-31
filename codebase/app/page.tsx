@@ -1,6 +1,25 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  CircleHelp,
+  ClipboardList,
+  FileCheck,
+  FileText,
+  Info,
+  LayoutGrid,
+  Library,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { SlideViewer } from "./components/slide-viewer";
 import type { LearningDiagnosis } from "../lib/diagnosis";
 import type { QuizScope } from "../lib/lesson";
@@ -36,6 +55,52 @@ type LessonCatalog = {
 
 const defaultPdfPath =
   "/slides/day03-tu-chatbot-den-agentic-agent-react-v7.pdf";
+
+// Dropdown tự vẽ thay cho <select> mặc định của trình duyệt (chỉ đổi cách hiển
+// thị — vẫn gọi đúng onChange như <select> cũ, không đổi logic chọn phạm vi).
+function ScopeDropdown({
+  value,
+  options,
+  onChange,
+}: {
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((option) => option.value === value);
+  return (
+    <div className="scope-dropdown">
+      <button
+        type="button"
+        className="scope-dropdown-trigger"
+        onClick={() => setOpen((v) => !v)}
+        onBlur={() => setTimeout(() => setOpen(false), 120)}
+      >
+        <span>{current?.label ?? "Chọn..."}</span>
+        <ChevronDown size={16} className={open ? "open" : ""} />
+      </button>
+      {open && (
+        <div className="scope-dropdown-panel">
+          {options.map((option) => (
+            <button
+              type="button"
+              key={option.value}
+              className={option.value === value ? "scope-dropdown-option active" : "scope-dropdown-option"}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function slidePageLabel(
   displaySlideNumber: string | null,
@@ -241,6 +306,7 @@ export default function Home() {
       setDiagnosis(payload.diagnosis);
       setUsedFallback(Boolean(payload.fallback));
       setPhase("result");
+      recordAttemptForOverview(payload.score);
     } catch (cause) {
       const calculated = questions.filter(
         (question, index) => answers[index] === question.correctOption,
@@ -250,6 +316,50 @@ export default function Home() {
       setUsedFallback(true);
       setError(cause instanceof Error ? cause.message : "AI chưa thể phân tích");
       setPhase("result");
+      recordAttemptForOverview(calculated);
+    }
+  }
+
+  // Lưu lượt làm cho trang "Tổng quan lớp" (giảng viên) — fire-and-forget,
+  // KHÔNG được phép ảnh hưởng trải nghiệm học viên nếu lưu lỗi. Không đụng gì
+  // đến /api/diagnosis hay logic chấm điểm ở trên, chỉ đọc lại state đã có sẵn.
+  function recordAttemptForOverview(finalScore: number) {
+    try {
+      const skippedQuestions = answers.filter((answer) => answer === null).length;
+      const answeredQuestions = questions.length - skippedQuestions;
+      const attemptAnswers = questions.map((question, index) => {
+        const selected = answers[index];
+        const isSkipped = selected === null;
+        const isCorrect = !isSkipped && selected === question.correctOption;
+        return {
+          questionId: question.id,
+          topic: question.topic,
+          sourceSlideId: question.sourceRef.slideId,
+          isCorrect,
+          isSkipped,
+          misconception:
+            isSkipped || isCorrect ? "" : question.misconceptions[selected as number],
+          level: question.level,
+          confidence: question.confidence,
+        };
+      });
+      void fetch("/api/attempts", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          scopeType: scope.type,
+          scopeId: scope.type === "lesson" ? scope.lessonId : scope.type === "chapter" ? scope.chapterId : scope.slideId,
+          score: finalScore,
+          answeredQuestions,
+          skippedQuestions,
+          totalQuestions: questions.length,
+          answers: attemptAnswers,
+        }),
+      }).catch(() => {
+        // Im lặng bỏ qua — không ảnh hưởng trải nghiệm học viên.
+      });
+    } catch {
+      // Không để lỗi tính toán ở đây làm vỡ luồng xem kết quả của học viên.
     }
   }
 
@@ -319,11 +429,10 @@ function Header({ phase, onHome }: { phase: Phase; onHome: () => void }) {
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <button className="icon-button" onClick={onHome} aria-label="Về bài học">←</button>
+        <button className="icon-button" onClick={onHome} aria-label="Về bài học"><ArrowLeft size={18} /></button>
         <Logo />
         <nav>
-          <button className="active" onClick={onHome}>▣ Không gian học</button>
-          <button disabled>⌁ Tổng quan lớp</button>
+          <button className="active" onClick={onHome}><LayoutGrid size={16} /> Không gian học</button>
         </nav>
       </div>
       <div className="topbar-actions">
@@ -372,7 +481,7 @@ function LearnScreen({
     <div className="learn-layout">
       <aside className="course-sidebar">
         <div className="side-title">
-          <span>▤</span>
+          <span><Library size={20} /></span>
           <div><b>Học liệu môn học</b><small>Slide đã được đối chiếu</small></div>
         </div>
         <div className="lesson-summary">
@@ -412,7 +521,7 @@ function LearnScreen({
 
       <section className="reader">
         <div className="reader-toolbar">
-          <span className="reader-mode">▤ Xem slide</span>
+          <span className="reader-mode"><FileText size={16} /> Xem slide</span>
           <div className="slide-navigation" aria-label="Điều hướng slide">
             <button
               type="button"
@@ -420,7 +529,7 @@ function LearnScreen({
               onClick={() => onViewerPage(viewerPage - 1)}
               aria-label="Slide trước"
             >
-              ←
+              <ChevronLeft size={18} />
             </button>
             <button
               type="button"
@@ -428,7 +537,7 @@ function LearnScreen({
               onClick={() => onViewerPage(viewerPage + 1)}
               aria-label="Slide tiếp theo"
             >
-              →
+              <ChevronRight size={18} />
             </button>
           </div>
           <span>
@@ -450,13 +559,13 @@ function LearnScreen({
                 : `Trang PDF ${viewerPage}`
             }
           />
-          <p className="approved-note">✓ Nguồn gồm 78 trang đã được đối chiếu và phê duyệt</p>
+          <p className="approved-note"><CheckCircle2 size={14} /> Nguồn gồm 78 trang đã được đối chiếu và phê duyệt</p>
         </div>
       </section>
 
       <aside className="study-panel">
-        <div className="panel-heading"><span>✦</span><div><b>Tạo quiz từ bài học</b><small>DeepSeek · Có dẫn nguồn</small></div></div>
-        {error && <div className="error-banner" role="alert">! {error}</div>}
+        <div className="panel-heading"><span><Sparkles size={20} /></span><div><b>Tạo quiz từ bài học</b><small>DeepSeek · Có dẫn nguồn</small></div></div>
+        {error && <div className="error-banner" role="alert"><AlertTriangle size={16} /> {error}</div>}
         <label>Phạm vi kiểm tra</label>
         <div className="segmented">
           <button className={scopeType === "lesson" ? "active" : ""} onClick={() => onScopeType("lesson")}>Cả bài</button>
@@ -464,20 +573,26 @@ function LearnScreen({
           <button className={scopeType === "slide" ? "active" : ""} onClick={() => onScopeType("slide")}>Slide kiến thức</button>
         </div>
         {scopeType === "chapter" && (
-          <select value={scopeId} onChange={(event) => onScopeId(event.target.value)}>
-            {catalog?.chapters.map((chapter) => (
-              <option value={chapter.chapterId} key={chapter.chapterId}>{chapter.title}</option>
-            ))}
-          </select>
+          <ScopeDropdown
+            value={scopeId}
+            onChange={onScopeId}
+            options={
+              catalog?.chapters.map((chapter) => ({
+                value: chapter.chapterId,
+                label: chapter.title,
+              })) ?? []
+            }
+          />
         )}
         {scopeType === "slide" && (
-          <select value={scopeId} onChange={(event) => onScopeId(event.target.value)}>
-            {quizSlides.map((slide) => (
-              <option value={slide.slideId} key={slide.slideId}>
-                {slide.title} · {slidePageLabel(slide.displaySlideNumber, slide.pdfPage)}
-              </option>
-            ))}
-          </select>
+          <ScopeDropdown
+            value={scopeId}
+            onChange={onScopeId}
+            options={quizSlides.map((slide) => ({
+              value: slide.slideId,
+              label: `${slide.title} · ${slidePageLabel(slide.displaySlideNumber, slide.pdfPage)}`,
+            }))}
+          />
         )}
         <label>Số câu hỏi</label>
         <div className="count-options">
@@ -488,7 +603,7 @@ function LearnScreen({
           ))}
         </div>
         <div className="source-summary">
-          <span>▤</span><div><b>Nguồn cố định đã duyệt</b><small>{quizSlides.length || 49} slide tạo quiz · Không dùng Internet</small></div>
+          <span><FileCheck size={20} /></span><div><b>Nguồn cố định đã duyệt</b></div>
         </div>
         <button className="primary wide" disabled={!catalog} onClick={onGenerate}>Tạo quiz bằng AI <span>→</span></button>
         <p className="fine-print">Điểm do hệ thống tính. AI chỉ tạo câu hỏi và phân tích phần cần ôn.</p>
@@ -501,11 +616,11 @@ function LoadingScreen({ diagnosis }: { diagnosis: boolean }) {
   return (
     <section className="loading-page">
       <div className="loading-card">
-        <div className="ai-orbit"><span>✦</span><i /><i /></div>
+        <div className="ai-orbit"><span><Sparkles size={26} /></span><i /><i /></div>
         <p className="eyebrow">{diagnosis ? "LEARNING DIAGNOSTIC" : "ASSESSMENT GENERATOR"}</p>
         <h1>{diagnosis ? "Đang tổng hợp kết quả của bạn" : "Đang tạo quiz có căn cứ"}</h1>
         <p>{diagnosis ? "AI đối chiếu câu đúng, câu sai và misconception với danh sách slide được phép gợi ý." : "AI chỉ sử dụng các slide đã được duyệt trong phạm vi bạn chọn."}</p>
-        <div className="loading-steps"><span className="done">✓ Lấy nguồn</span><span className="active">● {diagnosis ? "Phân tích evidence" : "Tạo câu hỏi"}</span><span>○ Kiểm tra đầu ra</span></div>
+        <div className="loading-steps"><span className="done"><CheckCircle2 size={14} /> Lấy nguồn</span><span className="active"><Circle size={14} fill="currentColor" /> {diagnosis ? "Phân tích evidence" : "Tạo câu hỏi"}</span><span><Circle size={14} /> Kiểm tra đầu ra</span></div>
       </div>
     </section>
   );
@@ -538,7 +653,7 @@ function QuizScreen({
     <section className="quiz-page">
       <div className="quiz-header">
         <div><p className="eyebrow">KIỂM TRA NHANH · DAY 3</p><h1>Kiểm tra mức độ hiểu</h1></div>
-        <button className="secondary" onClick={onExit}>Thoát ×</button>
+        <button className="secondary" onClick={onExit}>Thoát <X size={14} /></button>
       </div>
       <div className="progress-row"><div><i style={{ width: `${((index + (checked ? 1 : 0)) / total) * 100}%` }} /></div><b>{index + 1}/{total}</b></div>
       <div className="question-grid">
@@ -552,7 +667,7 @@ function QuizScreen({
               rel="noreferrer"
               aria-label={`Mở ${slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} trong tab mới`}
             >
-              ▤ {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
+              <FileText size={12} /> {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
             </a>
           </div>
           <h2>{question.question}</h2>
@@ -567,7 +682,7 @@ function QuizScreen({
                   className={`${isSelected ? "selected" : ""} ${isCorrect ? "correct" : ""} ${isWrong ? "wrong" : ""}`}
                   onClick={() => onSelect(optionIndex)}
                 >
-                  <span>{String.fromCharCode(65 + optionIndex)}</span><b>{option}</b>{isCorrect && <i>✓</i>}{isWrong && <i>×</i>}
+                  <span>{String.fromCharCode(65 + optionIndex)}</span><b>{option}</b>{isCorrect && <i><Check size={16} /></i>}{isWrong && <i><X size={16} /></i>}
                 </button>
               );
             })}
@@ -575,11 +690,13 @@ function QuizScreen({
           {checked && (
             <div className={`feedback ${selected === null ? "skipped" : selected === question.correctOption ? "good" : "bad"}`}>
               <b>
-                {selected === null
-                  ? "○ Đã bỏ qua · Ghi nhận hổng kiến thức"
-                  : selected === question.correctOption
-                    ? "✓ Chính xác"
-                    : "! Chưa chính xác"}
+                {selected === null ? (
+                  <><Circle size={14} /> Đã bỏ qua · Ghi nhận hổng kiến thức</>
+                ) : selected === question.correctOption ? (
+                  <><CheckCircle2 size={14} /> Chính xác</>
+                ) : (
+                  <><AlertTriangle size={14} /> Chưa chính xác</>
+                )}
               </b>
               <p>{question.explanation}</p>
               <a
@@ -658,24 +775,24 @@ function ResultScreen({
         </div>
         <div className="score-ring" style={{ "--score": `${percent * 3.6}deg` } as React.CSSProperties}><div><strong>{score}/{answeredCount}</strong><span>câu đã trả lời đúng</span>{skippedCount > 0 && <small>{skippedCount} câu bỏ qua</small>}</div></div>
       </div>
-      {(fallback || error) && <div className="fallback-note">ℹ Đang hiển thị phân tích dự phòng bằng luật. Điểm số và đáp án vẫn chính xác.</div>}
+      {(fallback || error) && <div className="fallback-note"><Info size={16} /> Đang hiển thị phân tích dự phòng bằng luật. Điểm số và đáp án vẫn chính xác.</div>}
       <div className="diagnosis-card">
-        <div className="diagnosis-title"><span>✦</span><div><p className="eyebrow">NHẬN XÉT KIẾN THỨC CÁ NHÂN CỦA AI</p><h2>Những gì bạn đã hiểu và cần củng cố</h2></div><em>Confidence: {diagnosis.confidence}</em></div>
+        <div className="diagnosis-title"><span><Sparkles size={22} /></span><div><p className="eyebrow">NHẬN XÉT KIẾN THỨC CÁ NHÂN CỦA AI</p><h2>Những gì bạn đã hiểu và cần củng cố</h2></div><em>Confidence: {diagnosis.confidence}</em></div>
         <div className="diagnosis-columns">
-          <div className="strength-box"><b>✓ Bạn đã làm tốt</b>{diagnosis.strengths.length ? diagnosis.strengths.map((item) => <p key={item.topic}>{item.topic} <small>· {item.evidenceQuestionIds.join(", ")}</small></p>) : <p>Chưa đủ câu đúng để xác định điểm mạnh.</p>}</div>
-          <div className="weakness-box"><b>! Nên tập trung tiếp theo</b>{diagnosis.weaknesses.length ? diagnosis.weaknesses.map((item) => <p key={`${item.topic}-${item.misconception}`}>{item.topic}: {item.misconception}</p>) : <p>Không phát hiện điểm yếu trong lượt làm này.</p>}</div>
-          <div className="gap-box"><b>○ Hổng kiến thức cần kiểm tra</b>{diagnosis.knowledgeGaps.length ? diagnosis.knowledgeGaps.map((item) => <p key={`${item.topic}-${item.evidenceQuestionIds.join("-")}`}>{item.topic}: {item.reason}</p>) : <p>Không có câu nào bị bỏ qua.</p>}</div>
+          <div className="strength-box"><b><CheckCircle2 size={16} /> Bạn đã làm tốt</b>{diagnosis.strengths.length ? diagnosis.strengths.map((item) => <p key={item.topic}>{item.topic} <small>· {item.evidenceQuestionIds.join(", ")}</small></p>) : <p>Chưa đủ câu đúng để xác định điểm mạnh.</p>}</div>
+          <div className="weakness-box"><b><AlertTriangle size={16} /> Nên tập trung tiếp theo</b>{diagnosis.weaknesses.length ? diagnosis.weaknesses.map((item) => <p key={`${item.topic}-${item.misconception}`}>{item.topic}: {item.misconception}</p>) : <p>Không phát hiện điểm yếu trong lượt làm này.</p>}</div>
+          <div className="gap-box"><b><CircleHelp size={16} /> Hổng kiến thức cần kiểm tra</b>{diagnosis.knowledgeGaps.length ? diagnosis.knowledgeGaps.map((item) => <p key={`${item.topic}-${item.evidenceQuestionIds.join("-")}`}>{item.topic}: {item.reason}</p>) : <p>Không có câu nào bị bỏ qua.</p>}</div>
         </div>
       </div>
       <div className="result-grid">
         <section className="answer-summary">
-          <div className="section-title"><div><span>▤</span><div><h2>Tổng hợp câu trả lời</h2><p>Xem kết quả và nguồn của từng câu.</p></div></div><b>{score}/{answeredCount} đúng · {skippedCount} bỏ qua</b></div>
+          <div className="section-title"><div><span><ClipboardList size={20} /></span><div><h2>Tổng hợp câu trả lời</h2><p>Xem kết quả và nguồn của từng câu.</p></div></div><b>{score}/{answeredCount} đúng · {skippedCount} bỏ qua</b></div>
           {questions.map((question, index) => {
             const correct = answers[index] === question.correctOption;
             const skipped = answers[index] === null;
             return (
               <div className={`answer-row ${skipped ? "skipped" : correct ? "pass" : "fail"}`} key={question.id}>
-                <span>{skipped ? "○" : correct ? "✓" : "!"}</span>
+                <span>{skipped ? <Circle size={18} /> : correct ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}</span>
                 <div>
                   <small>Câu {index + 1} · {question.topic}</small>
                   <a
@@ -685,7 +802,7 @@ function ResultScreen({
                     rel="noreferrer"
                     aria-label={`Mở ${slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} cho câu ${index + 1} trong tab mới`}
                   >
-                    ▤ {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
+                    <FileText size={12} /> {slidePageLabel(question.sourceRef.displaySlideNumber, question.sourceRef.pdfPage)} ↗
                   </a>
                   <b>{question.question}</b>
                   <p>{skipped ? "Bạn đã bỏ qua câu này. Hệ thống ghi nhận đây là hổng kiến thức cần kiểm tra thêm." : correct ? "Bạn trả lời đúng." : `Bạn chọn: ${question.options[answers[index]!]}. Đáp án đúng: ${question.options[question.correctOption]}`}</p>
