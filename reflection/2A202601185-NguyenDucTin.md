@@ -1,4 +1,4 @@
-# Reflection — Nguyễn Đức Tín · [Mã học viên]
+# Reflection — Nguyễn Đức Tín · 2A202601185
 
 ## Vai trò và phần phụ trách
 
