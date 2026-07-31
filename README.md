@@ -6,15 +6,15 @@
 
 | Mã học viên | Họ tên | Phụ trách chính |
 |---|---|---|
-| TODO | TODO | Evidence & impact |
-| TODO | TODO | AI prompt & evaluation |
-| TODO | TODO | Prototype & integration |
-| TODO | TODO | Spec & validation |
-| TODO | TODO | Demo & slide |
+| 2A202601703 | Nguyễn Nam Anh | Lead + Spec + Pitch Demo   |
+| 2A202601721 | Cao Nhật Minh  | Spec + Slide               |
+| 2A202601663 | Dương Văn Vũ   | Validation & Build Demo    |
+| 2A202601185 | Nguyễn Đức Tín | Prototype + AI Integration |
+| 2A202601611 | Trần Anh Thư   | Golden set + Test          |
 
 ## Lát cắt đang build
 
-Một học viên vừa học xong một phần slide cần kiểm tra mình hiểu sai khái niệm nào; AI tạo câu hỏi chẩn đoán có căn cứ từ slide và giải thích đáp án; học viên nhận được nội dung cần ôn lại cụ thể.
+Một học viên vừa đọc xong một phạm vi bài giảng cung cấp đoạn slide; hệ thống quyết định có đủ căn cứ để tạo một câu trắc nghiệm chẩn đoán có nguồn, đáp án và giải thích, để học viên nhận ra phần cần xem lại.
 
 ## Cấu trúc bài nộp
 
@@ -33,10 +33,10 @@ Một học viên vừa học xong một phần slide cần kiểm tra mình hi�
 ## Trạng thái
 
 - [x] CP2 — Flow chính bấm đi hết được.
-- [ ] CP3 — AI call thật + golden set ≥20 + kết quả lượt đầu.
-- [ ] CP4 — Spec gần cuối, evidence chuẩn A/B và quality bar được chốt.
-- [ ] CP5 — Validation ≥5 người, changelog và dry run.
-- [ ] CP6 — Demo 5 phút và slide 6 trang.
+- [x] CP3 — AI call thật + golden set ≥20 + kết quả lượt đầu.
+- [x] CP4 — Spec gần cuối, evidence chuẩn A/B và quality bar được chốt.
+- [x] CP5 — Validation ≥5 người, changelog và dry run.
+- [x] CP6 — Demo 5 phút và slide 6 trang.
 
 ---
 
