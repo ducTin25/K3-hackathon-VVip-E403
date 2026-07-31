@@ -1,0 +1,230 @@
+/* Stylesheet RIÊNG cho trang giảng viên — tách biệt hoàn toàn khỏi trang học
+   viên (không dùng chung file CSS), nhưng dùng lại đúng màu xanh thương hiệu
+   VLearn (--navy trong app/globals.css) để hài hoà thị giác giữa 2 khu vực. */
+.ovv-root {
+  color-scheme: light;
+  --ovv-surface:     #ffffff;
+  --ovv-page:        #edf5f9;
+  --ovv-ink:         #102f51;
+  --ovv-ink-2:       #45607c;
+  --ovv-ink-muted:   #7c93a8;
+  --ovv-line:        #d7e1eb;
+  --ovv-border:      #d7e1eb;
+  --ovv-accent:      #07589d;
+  --ovv-accent-dark: #063c70;
+  --ovv-accent-wash: #eaf3fb;
+  --ovv-good:        #16895c;
+  --ovv-good-wash:   #e6f6ee;
+  --ovv-warn:        #b5790f;
+  --ovv-warn-wash:   #fdf1d9;
+  --ovv-critical:    #d51f2a;
+  --ovv-critical-wash: #fbe7e8;
+}
+/* Cố định giao diện sáng, giống trang học viên — không theo dark mode hệ điều
+   hành (yêu cầu trực tiếp: nền phải sáng nhất quán, không tối). */
+
+.ovv-root {
+  min-height: 100vh;
+  background: var(--ovv-page);
+  color: var(--ovv-ink);
+  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+}
+.ovv-root svg { flex-shrink: 0; }
+
+.ovv-top {
+  background: var(--ovv-surface);
+  border-bottom: 1px solid var(--ovv-line);
+  padding: 16px 32px;
+  display: flex; align-items: center; gap: 16px;
+  position: sticky; top: 0; z-index: 10;
+}
+.ovv-icon-btn {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--ovv-border); color: var(--ovv-ink-2); text-decoration: none;
+}
+.ovv-icon-btn:hover { background: var(--ovv-accent-wash); color: var(--ovv-accent); border-color: transparent; }
+.ovv-brand { display: flex; align-items: center; gap: 12px; }
+.ovv-brand-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--ovv-accent-wash); color: var(--ovv-accent);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.ovv-brand h1 { margin: 0; font-size: 16px; font-weight: 700; }
+.ovv-brand p { margin: 2px 0 0; color: var(--ovv-ink-muted); font-size: 12px; }
+
+.ovv-body { max-width: 1480px; margin: 0 auto; padding: 32px; display: flex; flex-direction: column; gap: 20px; }
+
+.ovv-columns { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 980px) {
+  .ovv-columns { grid-template-columns: 1fr; }
+}
+
+.ovv-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.ovv-metric {
+  background: var(--ovv-surface); border-radius: 12px; padding: 18px 20px;
+  border: 1px solid var(--ovv-border);
+}
+.ovv-metric small { color: var(--ovv-ink-muted); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.ovv-metric strong {
+  display: block; margin-top: 8px; font-size: 26px; font-weight: 700;
+  font-variant-numeric: tabular-nums; color: var(--ovv-ink);
+}
+
+.ovv-card {
+  background: var(--ovv-surface); border-radius: 14px; padding: 24px 26px;
+  border: 1px solid var(--ovv-border);
+}
+.ovv-card h2 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
+.ovv-card-sub { color: var(--ovv-ink-muted); font-size: 12.5px; margin: 0 0 18px; }
+
+.ovv-empty, .ovv-error, .ovv-loading {
+  display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+  border-radius: 10px; font-size: 13px; border: 1px solid var(--ovv-border);
+}
+.ovv-empty { background: var(--ovv-accent-wash); color: var(--ovv-ink-2); border-color: transparent; }
+.ovv-error { background: var(--ovv-critical-wash); color: var(--ovv-critical); border-color: transparent; }
+.ovv-loading { color: var(--ovv-ink-muted); }
+.ovv-spin { animation: ovv-spin 1s linear infinite; }
+@keyframes ovv-spin { to { transform: rotate(360deg); } }
+
+/* AI Brief */
+.ovv-brief-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ovv-brief-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--ovv-accent-wash); color: var(--ovv-accent);
+  font-size: 10.5px; font-weight: 700; letter-spacing: .04em;
+  padding: 5px 10px; border-radius: 999px; text-transform: uppercase;
+}
+.ovv-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid transparent; border-radius: 9px; padding: 9px 15px;
+  font-weight: 600; font-size: 13px; cursor: pointer;
+  background: var(--ovv-ink); color: var(--ovv-surface);
+}
+.ovv-btn:hover { opacity: .88; }
+.ovv-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ovv-brief-summary { margin: 16px 0 0; color: var(--ovv-ink-2); font-size: 13.5px; line-height: 1.6; }
+.ovv-actions { display: grid; gap: 10px; margin-top: 16px; }
+.ovv-action {
+  display: grid; grid-template-columns: 26px 1fr auto; gap: 14px; align-items: start;
+  border: 1px solid var(--ovv-border); border-radius: 12px; padding: 14px 16px;
+}
+.ovv-action-rank {
+  width: 22px; height: 22px; border-radius: 50%; background: var(--ovv-accent-wash); color: var(--ovv-accent);
+  display: grid; place-items: center; font-size: 11px; font-weight: 700;
+}
+.ovv-action b { display: block; font-size: 13.5px; font-weight: 700; }
+.ovv-action p { margin: 5px 0 0; font-size: 12.5px; color: var(--ovv-ink-2); line-height: 1.5; }
+.ovv-action .ovv-tag { display: inline-block; margin-top: 7px; font-size: 11px; color: var(--ovv-ink-muted); }
+
+/* Bảng slide */
+.ovv-table-scroll { overflow-x: auto; }
+.ovv-table { width: 100%; min-width: 600px; border-collapse: collapse; table-layout: fixed; }
+.ovv-table col.ovv-col-slide { width: 23%; }
+.ovv-table col.ovv-col-chapter { width: 14%; }
+.ovv-table col.ovv-col-count { width: 18%; }
+.ovv-table col.ovv-col-misc { width: 36%; }
+.ovv-table col.ovv-col-action { width: 9%; }
+.ovv-table td b.ovv-clip, .ovv-table td span.ovv-clip {
+  display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; cursor: default;
+}
+.ovv-misc.ovv-clip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ovv-table th {
+  text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--ovv-ink-muted); border-bottom: 1px solid var(--ovv-line); padding: 8px 10px;
+  white-space: normal; overflow: hidden; line-height: 1.35;
+}
+.ovv-table td { padding: 13px 10px; border-bottom: 1px solid var(--ovv-line); vertical-align: top; font-size: 13px; }
+.ovv-table td b { display: block; font-size: 13px; font-weight: 600; }
+.ovv-table td small { color: var(--ovv-ink-muted); font-size: 11px; }
+.ovv-col-action-cell { display: flex; align-items: center; height: 100%; padding-top: 2px; }
+
+/* Số đếm đúng/sai/bỏ qua — màu phân biệt, luôn có nhãn chữ Đúng/Sai/Bỏ qua đi kèm dưới bảng chú thích, không chỉ dựa màu */
+.ovv-count-cell { display: flex; align-items: baseline; gap: 10px; font-variant-numeric: tabular-nums; }
+.ovv-count-cell b { font-size: 14px; font-weight: 800; }
+.ovv-count-cell .c-good { color: var(--ovv-good); }
+.ovv-count-cell .c-critical { color: var(--ovv-critical); }
+.ovv-count-cell .c-warn { color: var(--ovv-warn); }
+.ovv-count-legend { display: flex; gap: 14px; font-size: 11px; color: var(--ovv-ink-muted); margin: 10px 0 14px; }
+.ovv-count-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.ovv-count-legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.ovv-count-legend i.c-good { background: var(--ovv-good); }
+.ovv-count-legend i.c-critical { background: var(--ovv-critical); }
+.ovv-count-legend i.c-warn { background: var(--ovv-warn); }
+
+.ovv-misc { font-size: 12px; color: var(--ovv-ink-2); margin-bottom: 3px; }
+.ovv-misc small { color: var(--ovv-ink-muted); }
+.ovv-muted { color: var(--ovv-ink-muted); font-size: 12px; }
+.ovv-open-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--ovv-ink); font-weight: 600; font-size: 12px; text-decoration: none;
+  border: 1px solid var(--ovv-border); border-radius: 8px; padding: 6px 10px; white-space: nowrap;
+}
+.ovv-open-link:hover { background: var(--ovv-accent-wash); border-color: transparent; color: var(--ovv-accent); }
+
+/* Trang xem slide riêng (app/overview/slide) */
+.ovv-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ovv-ink-2); font-size: 13px; font-weight: 600; text-decoration: none;
+}
+.ovv-back:hover { color: var(--ovv-ink); }
+.ovv-slide-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ovv-slide-nav { display: flex; align-items: center; gap: 10px; }
+.ovv-slide-count { font-size: 12.5px; font-weight: 600; color: var(--ovv-ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ovv-slide-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.ovv-lesson-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--ovv-page); border: 1px solid var(--ovv-border);
+  color: var(--ovv-ink-2); font-size: 12px; font-weight: 600;
+  padding: 6px 11px; border-radius: 999px;
+}
+.ovv-slide-frame {
+  margin: 16px auto 0; max-width: 760px; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--ovv-border);
+}
+.ovv-slide-frame .custom-slide-viewer { min-height: 0; background: var(--ovv-page); }
+.ovv-slide-frame .custom-slide-viewer canvas { max-height: calc(100vh - 220px); width: auto !important; margin: 0 auto; }
+
+/* Layout 2 cột riêng cho trang xem slide: sidebar chương/slide + nội dung */
+.ovv-slide-layout { display: grid; grid-template-columns: 260px 1fr; gap: 0; align-items: start; }
+.ovv-slide-sidebar {
+  background: var(--ovv-surface); border-right: 1px solid var(--ovv-line);
+  padding: 18px 14px; height: calc(100vh - 73px); overflow-y: auto; position: sticky; top: 73px;
+}
+.ovv-sidebar-title {
+  display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700;
+  color: var(--ovv-ink); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--ovv-line);
+}
+.ovv-sidebar-toggle {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+  background: var(--ovv-page); border-radius: 9px; padding: 4px; margin-bottom: 12px;
+}
+.ovv-sidebar-toggle button {
+  border: none; background: transparent; border-radius: 6px; padding: 7px 0;
+  font-size: 11.5px; font-weight: 700; color: var(--ovv-ink-2); cursor: pointer;
+}
+.ovv-sidebar-toggle button.active { background: var(--ovv-surface); color: var(--ovv-accent); box-shadow: 0 1px 4px rgba(7,88,157,.15); }
+.ovv-sidebar-slide {
+  display: block; width: 100%; text-align: left; border: none; background: transparent;
+  color: var(--ovv-ink-2); font-size: 12.5px; padding: 8px; border-radius: 8px;
+  line-height: 1.4; margin-bottom: 2px; cursor: pointer;
+}
+.ovv-sidebar-slide:hover { background: var(--ovv-page); }
+.ovv-sidebar-slide.active { background: var(--ovv-accent-wash); color: var(--ovv-accent); font-weight: 700; }
+.ovv-slide-main { padding: 28px 32px; max-width: 900px; margin: 0 auto; width: 100%; }
+
+@media (max-width: 900px) {
+  .ovv-slide-layout { grid-template-columns: 1fr; }
+  .ovv-slide-sidebar { position: static; height: auto; max-height: 260px; border-right: none; border-bottom: 1px solid var(--ovv-line); }
+  .ovv-slide-main { padding: 18px; }
+}
+
+@media (max-width: 760px) {
+  .ovv-top { padding: 16px 18px; }
+  .ovv-body { padding: 18px; }
+  .ovv-metrics { grid-template-columns: 1fr; }
+  .ovv-action { grid-template-columns: 22px 1fr; }
+  .ovv-action .ovv-open-link { grid-column: 2; margin-top: 8px; width: fit-content; }
+}

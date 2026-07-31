@@ -18,6 +18,16 @@ button, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .48; }
 
+/* Icon system (lucide-react) — mọi icon canh chỉnh nhất quán với chữ xung quanh,
+   không lệ thuộc font hệ điều hành như ký tự Unicode trước đây. */
+svg { flex-shrink: 0; vertical-align: -2px; }
+nav button, nav a, .reader-mode, .feedback b, .diagnosis-columns > div > b, .quiz-header .secondary {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.approved-note { display: flex; justify-content: center; align-items: center; gap: 6px; }
+.error-banner, .fallback-note { display: flex; align-items: center; gap: 8px; }
+.options i { display: grid; place-items: center; }
+
 .topbar { height: 86px; padding: 0 30px; background: #fff; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 20; }
 .topbar-left, .topbar-actions, .brand, nav, .profile { display: flex; align-items: center; }
 .topbar-left { gap: 17px; }.topbar-actions { gap: 12px; }
@@ -27,7 +37,7 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 .logo-mark { width: 32px; height: 29px; position: relative; display: block; }
 .logo-mark i, .logo-mark b { position: absolute; width: 20px; height: 20px; transform: rotate(45deg); bottom: 3px; background: var(--navy-dark); }
 .logo-mark i { left: 1px; }.logo-mark b { right: 1px; background: var(--navy); }
-nav { gap: 14px; } nav button { border: 0; background: transparent; color: #5b6e84; font-weight: 700; padding: 18px 12px; border-bottom: 3px solid transparent; }
+nav { gap: 14px; } nav button, nav a { border: 0; background: transparent; color: #5b6e84; font-weight: 700; padding: 18px 12px; border-bottom: 3px solid transparent; text-decoration: none; }
 nav button.active { color: var(--navy); border-color: var(--red); }
 .system-pill { border: 1px solid #cce0f1; background: #f0f8ff; color: var(--navy); border-radius: 99px; padding: 10px 14px; font-size: 12px; font-weight: 700; }
 .system-pill i { display: inline-block; width: 7px; height: 7px; background: #39aa72; border-radius: 50%; margin-right: 6px; }
@@ -56,6 +66,27 @@ nav button.active { color: var(--navy); border-color: var(--red); }
 .study-panel label { display: block; font-size: 11px; font-weight: 800; color: #526a81; margin: 19px 0 8px; text-transform: uppercase; }
 .segmented { display: grid; grid-template-columns: repeat(3,1fr); background: #edf3f7; padding: 4px; border-radius: 11px; }.segmented button { border: 0; background: transparent; padding: 10px 5px; font-size: 10px; color: #65798d; border-radius: 8px; font-weight: 700; }.segmented button.active { background: #fff; color: var(--navy); box-shadow: 0 2px 8px rgba(23,57,87,.1); }
 select { width: 100%; margin-top: 10px; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 11px; color: var(--ink); }
+
+.scope-dropdown { position: relative; margin-top: 10px; }
+.scope-dropdown-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 11px 13px;
+  color: var(--ink); font-size: 13px; font-weight: 600; text-align: left;
+}
+.scope-dropdown-trigger:hover { border-color: #9db8d1; }
+.scope-dropdown-trigger svg { color: var(--muted); transition: transform .15s ease; flex-shrink: 0; }
+.scope-dropdown-trigger svg.open { transform: rotate(180deg); }
+.scope-dropdown-panel {
+  position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; right: 0;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(20,55,85,.14); padding: 6px; max-height: 260px; overflow-y: auto;
+}
+.scope-dropdown-option {
+  display: block; width: 100%; text-align: left; border: none; background: transparent;
+  color: var(--ink); font-size: 13px; padding: 10px 11px; border-radius: 8px; line-height: 1.4;
+}
+.scope-dropdown-option:hover { background: #f1f8fe; }
+.scope-dropdown-option.active { background: #edf6ff; color: var(--navy); font-weight: 700; }
 .count-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }.count-options button { border: 1px solid var(--line); background: #fff; border-radius: 11px; padding: 13px; text-align: left; display: flex; flex-direction: column; color: var(--ink); }.count-options button.active { border-color: var(--navy); background: #edf6ff; box-shadow: inset 0 0 0 1px var(--navy); }.count-options small { color: var(--muted); margin-top: 4px; font-size: 10px; }
 .source-summary { display: flex; gap: 11px; align-items: center; background: #f5f8fb; border: 1px solid var(--line); padding: 14px; border-radius: 11px; margin: 20px 0; }.source-summary > span { color: var(--navy); }.source-summary div { display: flex; flex-direction: column; }.source-summary b { font-size: 11px; }.source-summary small { font-size: 9px; color: var(--muted); margin-top: 3px; }
 .primary, .secondary { border-radius: 10px; padding: 12px 17px; font-weight: 800; border: 1px solid transparent; }.primary { color: #fff; background: var(--navy); }.primary:hover { background: var(--navy-dark); }.secondary { color: var(--navy); background: #fff; border-color: #bcd0e2; }.wide { width: 100%; display: flex; justify-content: space-between; align-items: center; }.fine-print { color: #91a0af; text-align: center; font-size: 10px; line-height: 1.5; }
@@ -93,3 +124,5 @@ select { width: 100%; margin-top: 10px; border: 1px solid var(--line); backgroun
   .quiz-page, .result-page { padding: 25px 14px 55px; }.quiz-header h1 { font-size: 25px; }.question-grid { grid-template-columns: 1fr; }.source-card { display: none; }.question-card { padding: 20px; }.question-card h2 { font-size: 20px; }.question-card footer { align-items: stretch; flex-direction: column; gap: 12px; }.question-actions { width: 100%; flex-direction: column-reverse; }.question-actions button { width: 100%; }
   .result-hero { padding: 28px 24px; align-items: flex-start; flex-direction: column; }.result-hero h1 { font-size: 29px; }.score-ring { margin: 25px 0 0; width: 125px; height: 125px; }.score-ring::before { width: 98px; height: 98px; }.diagnosis-title { flex-wrap: wrap; }.diagnosis-title em { margin: 10px 0 0 62px; }.diagnosis-columns { grid-template-columns: 1fr; }.gap-box { grid-column: auto; }.actions { flex-wrap: wrap; }.loading-card { padding: 34px 22px; }.loading-steps { flex-direction: column; gap: 9px; }.answer-row { grid-template-columns: 38px 1fr; }.answer-row em { grid-column: 2; width: fit-content; }
 }
+
+/* Trang Tổng quan lớp (app/overview) chuyển sang stylesheet riêng: app/overview/overview.css */

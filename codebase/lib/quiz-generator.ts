@@ -198,25 +198,45 @@ function validateQuizResult(
     if (item.confidence !== "high" && item.confidence !== "medium") {
       throw new Error("Confidence không hợp lệ");
     }
+    // Model có xu hướng lệch đáp án đúng về vị trí đầu (theo ví dụ trong prompt).
+    // Xáo vị trí bằng code để phân bố đều A/B/C/D — không phụ thuộc AI tự random.
+    const shuffled = shuffleOptions(options, misconceptions, correctOption);
     return {
       id,
       topic,
       level: item.level,
       question,
-      options,
-      correctOption,
+      options: shuffled.options,
+      correctOption: shuffled.correctOption,
       explanation,
       sourceRef: {
         slideId,
         displaySlideNumber: slide.displaySlideNumber,
         pdfPage: slide.pdfPage,
       },
-      misconceptions,
+      misconceptions: shuffled.misconceptions,
       confidence: item.confidence,
     } satisfies QuizQuestion;
   });
 
   return { status, questions, insufficiencyReason: "" };
+}
+
+function shuffleOptions(
+  options: [string, string, string, string],
+  misconceptions: [string, string, string, string],
+  correctOption: number,
+) {
+  const order = [0, 1, 2, 3];
+  for (let i = order.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return {
+    options: order.map((i) => options[i]) as [string, string, string, string],
+    misconceptions: order.map((i) => misconceptions[i]) as [string, string, string, string],
+    correctOption: order.indexOf(correctOption),
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -46,3 +46,7 @@ next-env.d.ts
 
 # Extracted slide content (nội dung slide thật) — giống data pack, không commit
 /scripts/slide-data/
+
+# Dữ liệu lượt làm quiz (runtime, không phải source) — cho trang Tổng quan lớp
+/db/attempts-data.json
+/data/attempts-export.json
